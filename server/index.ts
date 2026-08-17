@@ -24,12 +24,16 @@ app.get("/api/settings", async (_req,res)=>res.json(await prisma.siteSettings.fi
 app.get("/api/navigation", async (_req,res)=>res.json(await prisma.navigationItem.findMany({where:{active:true,parentId:null},include:{children:{where:{active:true},orderBy:{sortOrder:"asc"}}},orderBy:{sortOrder:"asc"}})));
 app.get("/api/footer", async (_req,res)=>res.json({columns:await prisma.footerSection.findMany({where:{active:true},orderBy:{sortOrder:"asc"}})}));
 app.get("/api/products", async (req,res)=>{const q=String(req.query.q||"");res.json(await prisma.product.findMany({where:{...active,...(q?{OR:[{title:{contains:q,mode:"insensitive"}},{description:{contains:q,mode:"insensitive"}},{brand:{name:{contains:q,mode:"insensitive"}}},{category:{name:{contains:q,mode:"insensitive"}}},{store:{name:{contains:q,mode:"insensitive"}}}]}:{})},include:{images:true,brand:true,category:true,store:true}}))});
+app.get("/api/products/:slug",async(req,res)=>{const product=await prisma.product.findFirst({where:{slug:req.params.slug,status:"ACTIVE"},include:{images:{orderBy:{sortOrder:"asc"}},brand:true,category:true,store:true,deals:{where:{status:"ACTIVE",endsAt:{gt:new Date()}}}}});if(!product)return res.status(404).json({message:"Product not found"});res.json(product)});
 app.get("/api/categories",async(_req,res)=>res.json(await prisma.category.findMany({where:active,orderBy:{sortOrder:"asc"}})));
+app.get("/api/categories/:slug",async(req,res)=>{const category=await prisma.category.findFirst({where:{slug:req.params.slug,status:"ACTIVE"},include:{products:{where:{status:"ACTIVE"},include:{images:{orderBy:{sortOrder:"asc"},take:1},store:true,brand:true}}}});if(!category)return res.status(404).json({message:"Category not found"});res.json(category)});
 app.get("/api/stores",async(_req,res)=>res.json(await prisma.store.findMany({where:{active:true}})));
+app.get("/api/stores/:slug",async(req,res)=>{const store=await prisma.store.findFirst({where:{slug:req.params.slug,active:true},include:{products:{where:{status:"ACTIVE"},include:{images:{orderBy:{sortOrder:"asc"},take:1},store:true,brand:true}}}});if(!store)return res.status(404).json({message:"Store not found"});res.json(store)});
 app.get("/api/brands",async(_req,res)=>res.json(await prisma.brand.findMany({where:{active:true}})));
 app.get("/api/deals",async(_req,res)=>res.json(await prisma.deal.findMany({where:{status:"ACTIVE",startsAt:{lte:new Date()},endsAt:{gt:new Date()}},include:{product:{include:{images:true,store:true}}}})));
 app.get("/api/banners",async(_req,res)=>res.json(await prisma.banner.findMany({where:{status:"ACTIVE",OR:[{endsAt:null},{endsAt:{gt:new Date()}}]},orderBy:{sortOrder:"asc"}})));
 app.get("/api/blog",async(_req,res)=>res.json(await prisma.blogPost.findMany({where:{status:"ACTIVE",publishedAt:{lte:new Date()}},include:{category:true},orderBy:{publishedAt:"desc"}})));
+app.get("/api/blog/:slug",async(req,res)=>{const post=await prisma.blogPost.findFirst({where:{slug:req.params.slug,status:"ACTIVE",publishedAt:{lte:new Date()}},include:{category:true}});if(!post)return res.status(404).json({message:"Article not found"});res.json(post)});
 app.get("/api/homepage",async(_req,res)=>{
   const [rows,banners]=await Promise.all([prisma.homepageSection.findMany({
     where:{visible:true},orderBy:{sortOrder:"asc"},

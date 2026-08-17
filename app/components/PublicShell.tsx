@@ -1,0 +1,2 @@
+import { Header } from "./Header";import { SiteFooter } from "./SiteFooter";import { api } from "../lib/api";
+export async function PublicShell({children}:{children:React.ReactNode}){const [navigation,settings,footer]=await Promise.all([api.navigation(),api.settings(),api.footer()]);return <div className="site-shell"><Header navigation={navigation} settings={settings}/><main>{children}</main><SiteFooter data={footer} settings={settings}/></div>}
