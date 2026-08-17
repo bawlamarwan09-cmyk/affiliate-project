@@ -1,0 +1,4 @@
+const API_BASE=process.env.NEXT_PUBLIC_API_URL||"http://localhost:4000/api";
+export class ApiError extends Error{status:number;errors?:unknown;constructor(message:string,status:number,errors?:unknown){super(message);this.status=status;this.errors=errors}}
+export async function api<T>(path:string,init:RequestInit={}):Promise<T>{const headers=new Headers(init.headers);if(init.body&&!(init.body instanceof FormData))headers.set("Content-Type","application/json");const response=await fetch(`${API_BASE}${path}`,{...init,headers,credentials:"include"});let payload:any=null;try{payload=await response.json()}catch{}if(!response.ok)throw new ApiError(payload?.message||`Request failed (${response.status})`,response.status,payload?.errors);return (payload?.data??payload) as T}
+export async function uploadImage(file:File){const body=new FormData();body.append("file",file);return api<{url:string}>("/admin/upload",{method:"POST",body})}
