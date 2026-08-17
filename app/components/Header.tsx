@@ -3,18 +3,7 @@ import Link from "next/link";
 import { useState } from "react";
 import type { NavItem, SiteSettings } from "../lib/types";
 
-export function Header({ navigation, settings }: { navigation: NavItem[]; settings: SiteSettings }) {
-  const [open, setOpen] = useState(false);
-  const name = settings.websiteName || "Bargain MOM";
-  const logo = settings.logo || "/brand/bargain-mom-logo.png";
-  return <>
-    <div className="announcement"><span>Independent picks. Transparent recommendations.</span><Link href="/affiliate-disclosure">How we earn</Link></div>
-    <header className="header">
-      <Link className="brand brand-logo" href="/" aria-label={`${name} home`}><img src={logo} alt={name}/></Link>
-      <nav className={open ? "nav open" : "nav"} aria-label="Main navigation">
-        {navigation.map(item => <Link key={item.id} href={item.url}>{item.label}</Link>)}
-      </nav>
-      <div className="header-actions"><Link className="search-pill" href="/search" aria-label="Search">⌕ <span>Search deals</span><kbd>⌘ K</kbd></Link><button className="menu" onClick={() => setOpen(!open)} aria-label="Toggle navigation">{open ? "×" : "☰"}</button></div>
-    </header>
-  </>;
+export function Header({navigation,settings}:{navigation:NavItem[];settings:SiteSettings}){
+  const [open,setOpen]=useState(false);const name=settings.websiteName||"Bargain MOM";const logo=settings.logo||"/brand/bargain-mom-logo.png";
+  return <header className="header"><Link className="brand brand-logo" href="/" aria-label={`${name} home`}><img src={logo} alt={name}/></Link><nav className={open?"nav open":"nav"} aria-label="Main navigation">{navigation.map(item=><div className="nav-entry" key={item.id}><Link href={item.url}>{item.label}{item.children?.length?<span>⌄</span>:null}</Link>{item.children?.length?<div className="nav-dropdown">{item.children.map(child=><Link href={child.url} key={child.id}>{child.label}</Link>)}</div>:null}</div>)}</nav><form className="header-search" action="/search"><input name="q" aria-label="Search products" placeholder={settings.searchPlaceholder||"Search products, brands or categories..."}/><button aria-label="Search">⌕</button></form><Link className="today-deals" href={settings.headerCtaUrl||"/deals"}>◆ {settings.headerCtaLabel||"Today’s Deals"}</Link><button className="menu" onClick={()=>setOpen(!open)} aria-label="Toggle navigation">{open?"×":"☰"}</button></header>
 }

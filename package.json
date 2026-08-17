@@ -16,6 +16,7 @@
     "db:generate": "prisma generate",
     "db:push": "prisma db push",
     "db:seed": "tsx prisma/seed.ts",
+    "db:seed:demo": "tsx prisma/seed-demo.ts",
     "typecheck:api": "tsc --noEmit --module nodenext --moduleResolution nodenext --target es2022 server/index.ts server/auth.ts prisma/seed.ts"
   },
   "dependencies": {

@@ -310,6 +310,12 @@ model SiteSettings {
   defaultSeoDescription String?
   affiliateDisclosure   String?
   copyright             String?
+  searchPlaceholder     String?
+  headerCtaLabel        String?
+  headerCtaUrl          String?
+  footerDescription     String?
+  newsletterTitle       String?
+  newsletterText        String?
   analyticsIds          Json?
   updatedAt             DateTime @updatedAt
 }
