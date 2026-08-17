@@ -5,11 +5,12 @@ import type { NavItem, SiteSettings } from "../lib/types";
 
 export function Header({ navigation, settings }: { navigation: NavItem[]; settings: SiteSettings }) {
   const [open, setOpen] = useState(false);
-  const name = settings.websiteName || "Dealora";
+  const name = settings.websiteName || "Bargain MOM";
+  const logo = settings.logo || "/brand/bargain-mom-logo.png";
   return <>
     <div className="announcement"><span>Independent picks. Transparent recommendations.</span><Link href="/affiliate-disclosure">How we earn</Link></div>
     <header className="header">
-      <Link className="brand" href="/" aria-label={`${name} home`}><span className="brand-mark">D</span><span>{name}</span></Link>
+      <Link className="brand brand-logo" href="/" aria-label={`${name} home`}><img src={logo} alt={name}/></Link>
       <nav className={open ? "nav open" : "nav"} aria-label="Main navigation">
         {navigation.map(item => <Link key={item.id} href={item.url}>{item.label}</Link>)}
       </nav>
