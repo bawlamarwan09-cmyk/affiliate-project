@@ -73,6 +73,7 @@ model Product {
   images            ProductImage[]
   deals             Deal[]
   affiliateLinks    AffiliateLink[]
+  homepagePlacements HomepageSectionProduct[]
   createdAt         DateTime        @default(now())
   updatedAt         DateTime        @updatedAt
 }
@@ -101,6 +102,7 @@ model Category {
   parent         Category?  @relation("CategoryTree", fields: [parentId], references: [id])
   children       Category[] @relation("CategoryTree")
   products       Product[]
+  homepagePlacements HomepageSectionCategory[]
 }
 
 model Brand {
@@ -129,6 +131,7 @@ model Store {
   seoDescription   String?
   products         Product[]
   banners          Banner[]
+  homepagePlacements HomepageSectionStore[]
 }
 
 model Deal {
@@ -176,8 +179,41 @@ model HomepageSection {
   ctaText    String?
   ctaUrl     String?
   config     Json?
+  products   HomepageSectionProduct[]
+  categories HomepageSectionCategory[]
+  stores     HomepageSectionStore[]
   createdAt  DateTime    @default(now())
   updatedAt  DateTime    @updatedAt
+}
+
+model HomepageSectionProduct {
+  sectionId String
+  productId String
+  sortOrder Int             @default(0)
+  section   HomepageSection @relation(fields: [sectionId], references: [id], onDelete: Cascade)
+  product   Product         @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@id([sectionId, productId])
+}
+
+model HomepageSectionCategory {
+  sectionId String
+  categoryId String
+  sortOrder Int             @default(0)
+  section   HomepageSection @relation(fields: [sectionId], references: [id], onDelete: Cascade)
+  category  Category        @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  @@id([sectionId, categoryId])
+}
+
+model HomepageSectionStore {
+  sectionId String
+  storeId   String
+  sortOrder Int             @default(0)
+  section   HomepageSection @relation(fields: [sectionId], references: [id], onDelete: Cascade)
+  store     Store           @relation(fields: [storeId], references: [id], onDelete: Cascade)
+
+  @@id([sectionId, storeId])
 }
 
 model BlogCategory {

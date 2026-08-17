@@ -28,7 +28,26 @@ app.get("/api/brands",async(_req,res)=>res.json(await prisma.brand.findMany({whe
 app.get("/api/deals",async(_req,res)=>res.json(await prisma.deal.findMany({where:{status:"ACTIVE",startsAt:{lte:new Date()},endsAt:{gt:new Date()}},include:{product:{include:{images:true,store:true}}}})));
 app.get("/api/banners",async(_req,res)=>res.json(await prisma.banner.findMany({where:{status:"ACTIVE",OR:[{endsAt:null},{endsAt:{gt:new Date()}}]},orderBy:{sortOrder:"asc"}})));
 app.get("/api/blog",async(_req,res)=>res.json(await prisma.blogPost.findMany({where:{status:"ACTIVE",publishedAt:{lte:new Date()}},include:{category:true},orderBy:{publishedAt:"desc"}})));
-app.get("/api/homepage",async(_req,res)=>{const sections=await prisma.homepageSection.findMany({where:{visible:true},orderBy:{sortOrder:"asc"}});res.json({sections})});
+app.get("/api/homepage",async(_req,res)=>{
+  const rows=await prisma.homepageSection.findMany({
+    where:{visible:true},orderBy:{sortOrder:"asc"},
+    include:{
+      products:{orderBy:{sortOrder:"asc"},include:{product:{include:{images:{orderBy:{sortOrder:"asc"},take:1},store:true}}}},
+      categories:{orderBy:{sortOrder:"asc"},include:{category:true}},
+      stores:{orderBy:{sortOrder:"asc"},include:{store:true}},
+    },
+  });
+  const needsBlog=rows.some(section=>section.type==="BLOG");
+  const posts=needsBlog?await prisma.blogPost.findMany({where:{status:"ACTIVE",publishedAt:{lte:new Date()}},include:{category:true},orderBy:{publishedAt:"desc"},take:8}):[];
+  const sections=rows.map(({products,categories,stores,...section})=>({
+    ...section,
+    products:products.map(({product})=>({...product,image:product.images[0]?.url})),
+    categories:categories.map(({category})=>category),
+    stores:stores.map(({store})=>store),
+    posts:section.type==="BLOG"?posts:undefined,
+  }));
+  res.json({sections});
+});
 app.post("/api/newsletter",async(req,res)=>{const body=z.object({email:z.string().email()}).parse(req.body);res.status(201).json(await prisma.newsletterSubscriber.upsert({where:{email:body.email},create:body,update:{status:"ACTIVE"}}))});
 app.get("/api/admin/overview",requireAdmin,async(_req,res)=>{const [products,deals,stores,categories,posts,subscribers]=await Promise.all([prisma.product.count(),prisma.deal.count({where:{status:"ACTIVE"}}),prisma.store.count(),prisma.category.count(),prisma.blogPost.count(),prisma.newsletterSubscriber.count()]);res.json({products,deals,stores,categories,posts,subscribers})});
 app.listen(Number(process.env.PORT||4000),()=>console.log("API listening on :4000"));
