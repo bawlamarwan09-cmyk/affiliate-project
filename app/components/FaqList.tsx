@@ -1,0 +1,2 @@
+export type FaqItem={question:string;answer:string};
+export function FaqList({items,title="Frequently Asked Questions"}:{items?:FaqItem[]|null;title?:string}){if(!Array.isArray(items)||!items.length)return null;return <section className="faq-section"><h2>{title}</h2><div>{items.slice(0,6).map(item=><details key={item.question}><summary>{item.question}</summary><p>{item.answer}</p></details>)}</div></section>}

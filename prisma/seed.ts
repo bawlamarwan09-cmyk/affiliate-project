@@ -1,1 +1,28 @@
-import "dotenv/config";import bcrypt from "bcryptjs";import {PrismaClient} from "@prisma/client";const prisma=new PrismaClient();const email=process.env.ADMIN_EMAIL;const password=process.env.ADMIN_PASSWORD;if(!email||!password||password.length<10)throw new Error("Set ADMIN_EMAIL and ADMIN_PASSWORD (10+ chars)");await prisma.admin.upsert({where:{email},update:{passwordHash:await bcrypt.hash(password,12)},create:{email,name:process.env.ADMIN_NAME||"Administrator",passwordHash:await bcrypt.hash(password,12),role:"OWNER"}});await prisma.$disconnect();
+import "dotenv/config";
+import bcrypt from "bcryptjs";
+import { PrismaClient } from "@prisma/client";
+
+const prisma = new PrismaClient();
+
+async function main() {
+  const email = process.env.ADMIN_EMAIL?.trim().toLowerCase();
+  const password = process.env.ADMIN_PASSWORD;
+  const name = process.env.ADMIN_NAME?.trim() || "Administrator";
+
+  if (!email || !password || password.length < 10) {
+    throw new Error("Set ADMIN_EMAIL and ADMIN_PASSWORD (10+ characters) before running the admin seed.");
+  }
+
+  const passwordHash = await bcrypt.hash(password, 12);
+  await prisma.admin.upsert({
+    where: { email },
+    update: { name, passwordHash, role: "OWNER", active: true },
+    create: { email, name, passwordHash, role: "OWNER", active: true },
+  });
+}
+
+try {
+  await main();
+} finally {
+  await prisma.$disconnect();
+}

@@ -1,0 +1,13 @@
+import type {Metadata} from "next";
+
+export type SeoEntity={seoTitle?:string|null;seoDescription?:string|null;canonicalUrl?:string|null;ogTitle?:string|null;ogDescription?:string|null;ogImage?:string|null;robotsIndex?:boolean|null;robotsFollow?:boolean|null;schemaEnabled?:boolean|null};
+export type SeoSettings={siteUrl?:string|null;websiteName?:string|null;defaultSeoDescription?:string|null};
+const fallbackSite=process.env.NEXT_PUBLIC_SITE_URL||process.env.SITE_URL||"http://localhost:3000";
+export function siteUrl(settings?:SeoSettings|null){try{return new URL(settings?.siteUrl||fallbackSite).origin}catch{return "http://localhost:3000"}}
+export function absoluteUrl(value:string,settings?:SeoSettings|null){try{return new URL(value,`${siteUrl(settings)}/`).toString()}catch{return `${siteUrl(settings)}/`}}
+export function entityMetadata(entity:SeoEntity|undefined,fallback:{title:string;description?:string|null;path:string;image?:string|null},settings?:SeoSettings|null):Metadata{
+  const title=entity?.seoTitle||fallback.title;const description=entity?.seoDescription||fallback.description||settings?.defaultSeoDescription||`${fallback.title} with practical shopping information for U.S. shoppers.`;const canonical=absoluteUrl(entity?.canonicalUrl||fallback.path,settings);const ogTitle=entity?.ogTitle||title;const ogDescription=entity?.ogDescription||description;const ogImage=entity?.ogImage||fallback.image;
+  return {title:entity?.seoTitle?{absolute:title}:title,description,alternates:{canonical},robots:{index:entity?.robotsIndex!==false,follow:entity?.robotsFollow!==false},openGraph:{title:ogTitle,description:ogDescription,locale:"en_US",type:"website",url:canonical,images:ogImage?[{url:absoluteUrl(ogImage,settings),alt:ogTitle}]:undefined},twitter:{card:ogImage?"summary_large_image":"summary",title:ogTitle,description:ogDescription,images:ogImage?[absoluteUrl(ogImage,settings)]:undefined}};
+}
+export function breadcrumbSchema(items:{name:string;url:string}[],settings?:SeoSettings|null){return {"@context":"https://schema.org","@type":"BreadcrumbList",itemListElement:items.map((item,index)=>({"@type":"ListItem",position:index+1,name:item.name,item:absoluteUrl(item.url,settings)}))}}
+export function itemListSchema(items:{name:string;url:string;image?:string|null}[],settings?:SeoSettings|null){return {"@context":"https://schema.org","@type":"ItemList",numberOfItems:items.length,itemListElement:items.map((item,index)=>({"@type":"ListItem",position:index+1,url:absoluteUrl(item.url,settings),name:item.name,image:item.image?absoluteUrl(item.image,settings):undefined}))}}

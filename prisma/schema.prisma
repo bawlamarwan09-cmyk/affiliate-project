@@ -44,44 +44,70 @@ model Admin {
 }
 
 model Product {
-  id               String          @id @default(cuid())
-  title            String
-  slug             String          @unique
-  description      String?
-  shortDescription String?
-  currentPrice     Decimal?        @db.Decimal(12, 2)
-  oldPrice         Decimal?        @db.Decimal(12, 2)
-  discountPercent  Int?
-  rating           Decimal?        @db.Decimal(2, 1)
-  reviewCount      Int             @default(0)
-  affiliateUrl     String
-  ctaLabel         String          @default("View deal")
-  badge            String?
-  sku              String?
-  availability     String?
-  keyFeatures      String[]
-  pros             String[]
-  cons             String[]
-  whyRecommend     String?
-  bestFor          String?
-  buyingAdvice     String?
-  tags             String[]
-  status           Status          @default(DRAFT)
-  featured         Boolean         @default(false)
-  seoTitle         String?
-  seoDescription   String?
-  categoryId       String?
-  category         Category?       @relation(fields: [categoryId], references: [id])
-  brandId          String?
-  brand             Brand?          @relation(fields: [brandId], references: [id])
-  storeId          String?
-  store             Store?          @relation(fields: [storeId], references: [id])
-  images            ProductImage[]
-  deals             Deal[]
-  affiliateLinks    AffiliateLink[]
-  homepagePlacements HomepageSectionProduct[]
-  createdAt         DateTime        @default(now())
-  updatedAt         DateTime        @updatedAt
+  id                    String                    @id @default(cuid())
+  title                 String
+  slug                  String                    @unique
+  description           String?
+  shortDescription      String?
+  currentPrice          Decimal?                  @db.Decimal(12, 2)
+  oldPrice              Decimal?                  @db.Decimal(12, 2)
+  discountPercent       Int?
+  rating                Decimal?                  @db.Decimal(2, 1)
+  reviewCount           Int                       @default(0)
+  affiliateUrl          String?
+  ctaLabel              String                    @default("View deal")
+  badge                 String?
+  sku                   String?
+  availability          String?
+  keyFeatures           String[]                  @default([])
+  pros                  String[]                  @default([])
+  cons                  String[]                  @default([])
+  whyRecommend          String?
+  bestFor               String?
+  buyingAdvice          String?
+  editorialSummary      String?
+  idealFor              String?
+  notIdealFor           String?
+  importantSpecs        Json?
+  comparisonNotes       String?
+  dealAnalysis          String?
+  alternativesNotes     String?
+  whatWeLike            String?
+  whatCouldBeBetter     String?
+  bestUseCases          String[]                  @default([])
+  faqItems              Json?
+  lastVerifiedAt        DateTime?
+  priceUpdatedAt        DateTime?
+  contentUpdatedAt      DateTime?
+  tags                  String[]
+  status                Status                    @default(DRAFT)
+  featured              Boolean                   @default(false)
+  seoTitle              String?
+  seoDescription        String?
+  canonicalUrl          String?
+  ogTitle               String?
+  ogDescription         String?
+  ogImage               String?
+  robotsIndex           Boolean                   @default(true)
+  robotsFollow          Boolean                   @default(true)
+  schemaEnabled         Boolean                   @default(true)
+  categoryId            String?
+  category              Category?                 @relation(fields: [categoryId], references: [id])
+  brandId               String?
+  brand                 Brand?                    @relation(fields: [brandId], references: [id])
+  storeId               String?
+  store                 Store?                    @relation(fields: [storeId], references: [id])
+  images                ProductImage[]
+  deals                 Deal[]
+  affiliateLinks        AffiliateLink[]
+  homepagePlacements    HomepageSectionProduct[]
+  categoryFeatures      CategoryFeaturedProduct[]
+  buyingGuidePlacements BuyingGuideProduct[]
+  comparisonPlacements  ComparisonProduct[]
+  blogPlacements        BlogPostProduct[]
+  affiliateClicks       AffiliateClick[]
+  createdAt             DateTime                  @default(now())
+  updatedAt             DateTime                  @updatedAt
 }
 
 model ProductImage {
@@ -94,21 +120,47 @@ model ProductImage {
 }
 
 model Category {
-  id             String     @id @default(cuid())
-  name           String
-  slug           String     @unique
-  icon           String?
-  image          String?
-  description    String?
-  status         Status     @default(ACTIVE)
-  sortOrder      Int        @default(0)
-  seoTitle       String?
-  seoDescription String?
-  parentId       String?
-  parent         Category?  @relation("CategoryTree", fields: [parentId], references: [id])
-  children       Category[] @relation("CategoryTree")
-  products       Product[]
+  id                 String                    @id @default(cuid())
+  name               String
+  slug               String                    @unique
+  icon               String?
+  image              String?
+  description        String?
+  h1                 String?
+  editorialContent   String?
+  buyingTips         String[]                  @default([])
+  faqItems           Json?
+  status             Status                    @default(ACTIVE)
+  sortOrder          Int                       @default(0)
+  seoTitle           String?
+  seoDescription     String?
+  canonicalUrl       String?
+  ogTitle            String?
+  ogDescription      String?
+  ogImage            String?
+  robotsIndex        Boolean                   @default(true)
+  robotsFollow       Boolean                   @default(true)
+  schemaEnabled      Boolean                   @default(true)
+  parentId           String?
+  parent             Category?                 @relation("CategoryTree", fields: [parentId], references: [id])
+  children           Category[]                @relation("CategoryTree")
+  products           Product[]
+  featuredProducts   CategoryFeaturedProduct[]
+  guides             BuyingGuide[]
+  blogPlacements     BlogPostCategory[]
   homepagePlacements HomepageSectionCategory[]
+  createdAt          DateTime                  @default(now())
+  updatedAt          DateTime                  @default(now()) @updatedAt
+}
+
+model CategoryFeaturedProduct {
+  categoryId String
+  productId  String
+  sortOrder  Int      @default(0)
+  category   Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  product    Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@id([categoryId, productId])
 }
 
 model Brand {
@@ -120,24 +172,47 @@ model Brand {
   active         Boolean   @default(true)
   seoTitle       String?
   seoDescription String?
+  canonicalUrl   String?
+  ogTitle        String?
+  ogDescription  String?
+  ogImage        String?
+  robotsIndex    Boolean   @default(true)
+  robotsFollow   Boolean   @default(true)
+  schemaEnabled  Boolean   @default(true)
   products       Product[]
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @default(now()) @updatedAt
 }
 
 model Store {
-  id               String    @id @default(cuid())
-  name             String
-  slug             String    @unique
-  logo             String?
-  description      String?
-  websiteUrl       String?
-  affiliateBaseUrl String?
-  color            String?
-  active           Boolean   @default(true)
-  seoTitle         String?
-  seoDescription   String?
-  products         Product[]
-  banners          Banner[]
-  homepagePlacements HomepageSectionStore[]
+  id                   String                 @id @default(cuid())
+  name                 String
+  slug                 String                 @unique
+  logo                 String?
+  description          String?
+  editorialNotes       String?
+  shoppingTips         String[]               @default([])
+  faqItems             Json?
+  websiteUrl           String?
+  affiliateBaseUrl     String?
+  color                String?
+  active               Boolean                @default(true)
+  seoTitle             String?
+  seoDescription       String?
+  canonicalUrl         String?
+  ogTitle              String?
+  ogDescription        String?
+  ogImage              String?
+  robotsIndex          Boolean                @default(true)
+  robotsFollow         Boolean                @default(true)
+  schemaEnabled        Boolean                @default(true)
+  products             Product[]
+  banners              Banner[]
+  homepagePlacements   HomepageSectionStore[]
+  comparisonPlacements ComparisonStore[]
+  affiliateClicks      AffiliateClick[]
+  createdAt            DateTime               @default(now())
+  updatedAt            DateTime               @default(now()) @updatedAt
 }
 
 model Deal {
@@ -151,13 +226,22 @@ model Deal {
   status          Status       @default(DRAFT)
   featured        Boolean      @default(false)
   badge           String?
+  seoTitle        String?
+  seoDescription  String?
+  canonicalUrl    String?
+  ogTitle         String?
+  ogDescription   String?
+  ogImage         String?
+  robotsIndex     Boolean      @default(false)
+  robotsFollow    Boolean      @default(true)
+  schemaEnabled   Boolean      @default(false)
   seo             SeoMetadata?
   createdAt       DateTime     @default(now())
   updatedAt       DateTime     @updatedAt
 }
 
 model Banner {
-  id          String   @id @default(cuid())
+  id          String    @id @default(cuid())
   title       String
   subtitle    String?
   image       String?
@@ -167,19 +251,19 @@ model Banner {
   buttonUrl   String?
   startsAt    DateTime?
   endsAt      DateTime?
-  status      Status   @default(DRAFT)
-  sortOrder   Int      @default(0)
+  status      Status    @default(DRAFT)
+  sortOrder   Int       @default(0)
   storeId     String?
-  store       Store?   @relation(fields: [storeId], references: [id])
+  store       Store?    @relation(fields: [storeId], references: [id])
 }
 
 model HomepageSection {
-  id         String      @id @default(cuid())
+  id         String                    @id @default(cuid())
   type       SectionType
   title      String?
   subtitle   String?
-  sortOrder  Int         @default(0)
-  visible    Boolean     @default(true)
+  sortOrder  Int                       @default(0)
+  visible    Boolean                   @default(true)
   maxItems   Int?
   background String?
   ctaText    String?
@@ -188,8 +272,8 @@ model HomepageSection {
   products   HomepageSectionProduct[]
   categories HomepageSectionCategory[]
   stores     HomepageSectionStore[]
-  createdAt  DateTime    @default(now())
-  updatedAt  DateTime    @updatedAt
+  createdAt  DateTime                  @default(now())
+  updatedAt  DateTime                  @updatedAt
 }
 
 model HomepageSectionProduct {
@@ -203,11 +287,11 @@ model HomepageSectionProduct {
 }
 
 model HomepageSectionCategory {
-  sectionId String
+  sectionId  String
   categoryId String
-  sortOrder Int             @default(0)
-  section   HomepageSection @relation(fields: [sectionId], references: [id], onDelete: Cascade)
-  category  Category        @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  sortOrder  Int             @default(0)
+  section    HomepageSection @relation(fields: [sectionId], references: [id], onDelete: Cascade)
+  category   Category        @relation(fields: [categoryId], references: [id], onDelete: Cascade)
 
   @@id([sectionId, categoryId])
 }
@@ -230,23 +314,199 @@ model BlogCategory {
 }
 
 model BlogPost {
-  id             String        @id @default(cuid())
+  id                         String             @id @default(cuid())
+  title                      String
+  slug                       String             @unique
+  excerpt                    String?
+  content                    String
+  coverImage                 String?
+  author                     String?
+  authorId                   String?
+  authorProfile              Author?            @relation(fields: [authorId], references: [id])
+  tags                       String[]
+  status                     Status             @default(DRAFT)
+  publishedAt                DateTime?
+  readingTime                Int?
+  seoTitle                   String?
+  seoDescription             String?
+  canonicalUrl               String?
+  ogTitle                    String?
+  ogDescription              String?
+  ogImage                    String?
+  robotsIndex                Boolean            @default(true)
+  robotsFollow               Boolean            @default(true)
+  schemaEnabled              Boolean            @default(true)
+  faqItems                   Json?
+  contentUpdatedAt           DateTime?
+  categoryId                 String?
+  category                   BlogCategory?      @relation(fields: [categoryId], references: [id])
+  productPlacements          BlogPostProduct[]
+  guidePlacements            BlogPostGuide[]
+  commerceCategoryPlacements BlogPostCategory[]
+  createdAt                  DateTime           @default(now())
+  updatedAt                  DateTime           @updatedAt
+}
+
+model Author {
+  id           String        @id @default(cuid())
+  name         String
+  slug         String        @unique
+  bio          String?
+  profileImage String?
+  expertise    String[]      @default([])
+  profileUrls  String[]      @default([])
+  active       Boolean       @default(true)
+  posts        BlogPost[]
+  guides       BuyingGuide[]
+  comparisons  Comparison[]
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+}
+
+model BuyingGuide {
+  id                String               @id @default(cuid())
+  title             String
+  slug              String               @unique
+  intro             String
+  body              String?
+  editorialSections Json?
+  heroImage         String?
+  heroImageAlt      String?
+  faqItems          Json?
+  status            Status               @default(DRAFT)
+  publishedAt       DateTime?
+  categoryId        String?
+  category          Category?            @relation(fields: [categoryId], references: [id])
+  authorId          String?
+  author            Author?              @relation(fields: [authorId], references: [id])
+  products          BuyingGuideProduct[]
+  blogPlacements    BlogPostGuide[]
+  seoTitle          String?
+  seoDescription    String?
+  canonicalUrl      String?
+  ogTitle           String?
+  ogDescription     String?
+  ogImage           String?
+  robotsIndex       Boolean              @default(true)
+  robotsFollow      Boolean              @default(true)
+  schemaEnabled     Boolean              @default(true)
+  createdAt         DateTime             @default(now())
+  updatedAt         DateTime             @updatedAt
+}
+
+model BuyingGuideProduct {
+  guideId   String
+  productId String
+  sortOrder Int         @default(0)
+  note      String?
+  guide     BuyingGuide @relation(fields: [guideId], references: [id], onDelete: Cascade)
+  product   Product     @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@id([guideId, productId])
+}
+
+model BlogPostProduct {
+  postId    String
+  productId String
+  sortOrder Int      @default(0)
+  post      BlogPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@id([postId, productId])
+}
+
+model BlogPostGuide {
+  postId    String
+  guideId   String
+  sortOrder Int         @default(0)
+  post      BlogPost    @relation(fields: [postId], references: [id], onDelete: Cascade)
+  guide     BuyingGuide @relation(fields: [guideId], references: [id], onDelete: Cascade)
+
+  @@id([postId, guideId])
+}
+
+model BlogPostCategory {
+  postId     String
+  categoryId String
+  sortOrder  Int      @default(0)
+  post       BlogPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+  category   Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  @@id([postId, categoryId])
+}
+
+model Comparison {
+  id              String              @id @default(cuid())
+  title           String
+  slug            String              @unique
+  introduction    String
+  comparisonTable Json?
+  strengths       Json?
+  weaknesses      Json?
+  pricingNotes    String?
+  bestFor         String?
+  verdict         String?
+  faqItems        Json?
+  heroImage       String?
+  heroImageAlt    String?
+  status          Status              @default(DRAFT)
+  publishedAt     DateTime?
+  authorId        String?
+  author          Author?             @relation(fields: [authorId], references: [id])
+  products        ComparisonProduct[]
+  stores          ComparisonStore[]
+  seoTitle        String?
+  seoDescription  String?
+  canonicalUrl    String?
+  ogTitle         String?
+  ogDescription   String?
+  ogImage         String?
+  robotsIndex     Boolean             @default(true)
+  robotsFollow    Boolean             @default(true)
+  schemaEnabled   Boolean             @default(true)
+  createdAt       DateTime            @default(now())
+  updatedAt       DateTime            @updatedAt
+}
+
+model ComparisonProduct {
+  comparisonId String
+  productId    String
+  sortOrder    Int        @default(0)
+  comparison   Comparison @relation(fields: [comparisonId], references: [id], onDelete: Cascade)
+  product      Product    @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@id([comparisonId, productId])
+}
+
+model ComparisonStore {
+  comparisonId String
+  storeId      String
+  sortOrder    Int        @default(0)
+  comparison   Comparison @relation(fields: [comparisonId], references: [id], onDelete: Cascade)
+  store        Store      @relation(fields: [storeId], references: [id], onDelete: Cascade)
+
+  @@id([comparisonId, storeId])
+}
+
+model EditorialPage {
+  id             String    @id @default(cuid())
   title          String
-  slug           String        @unique
-  excerpt        String?
+  slug           String    @unique
+  intro          String?
   content        String
-  coverImage     String?
-  author         String?
-  tags           String[]
-  status         Status        @default(DRAFT)
+  status         Status    @default(DRAFT)
   publishedAt    DateTime?
-  readingTime    Int?
   seoTitle       String?
   seoDescription String?
-  categoryId     String?
-  category       BlogCategory? @relation(fields: [categoryId], references: [id])
-  createdAt      DateTime      @default(now())
-  updatedAt      DateTime      @updatedAt
+  canonicalUrl   String?
+  ogTitle        String?
+  ogDescription  String?
+  ogImage        String?
+  robotsIndex    Boolean   @default(true)
+  robotsFollow   Boolean   @default(true)
+  schemaEnabled  Boolean   @default(false)
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
 }
 
 model NavigationItem {
@@ -280,6 +540,22 @@ model AffiliateLink {
   createdAt  DateTime @default(now())
 }
 
+model AffiliateClick {
+  id          String   @id @default(cuid())
+  productId   String?
+  product     Product? @relation(fields: [productId], references: [id], onDelete: SetNull)
+  productName String?
+  storeId     String?
+  store       Store?   @relation(fields: [storeId], references: [id], onDelete: SetNull)
+  storeName   String?
+  placement   String
+  pagePath    String
+  createdAt   DateTime @default(now())
+
+  @@index([productId, createdAt])
+  @@index([placement, createdAt])
+}
+
 model NewsletterSubscriber {
   id        String   @id @default(cuid())
   email     String   @unique
@@ -304,24 +580,36 @@ model SeoMetadata {
 }
 
 model SiteSettings {
-  id                    String   @id @default("global")
-  websiteName           String
-  logo                  String?
-  favicon               String?
-  primaryColor          String   @default("#101a2f")
-  accentColor           String   @default("#f36b2b")
-  supportEmail          String?
-  socialMedia           Json?
-  defaultSeoTitle       String?
-  defaultSeoDescription String?
-  affiliateDisclosure   String?
-  copyright             String?
-  searchPlaceholder     String?
-  headerCtaLabel        String?
-  headerCtaUrl          String?
-  footerDescription     String?
-  newsletterTitle       String?
-  newsletterText        String?
-  analyticsIds          Json?
-  updatedAt             DateTime @updatedAt
+  id                     String   @id @default("global")
+  websiteName            String
+  logo                   String?
+  favicon                String?
+  primaryColor           String   @default("#101a2f")
+  accentColor            String   @default("#f36b2b")
+  supportEmail           String?
+  socialMedia            Json?
+  defaultSeoTitle        String?
+  defaultSeoDescription  String?
+  siteUrl                String?
+  homepageSeoTitle       String?
+  homepageSeoDescription String?
+  homepageCanonicalUrl   String?
+  homepageOgTitle        String?
+  homepageOgDescription  String?
+  homepageOgImage        String?
+  homepageRobotsIndex    Boolean  @default(true)
+  homepageRobotsFollow   Boolean  @default(true)
+  homepageSchemaEnabled  Boolean  @default(true)
+  googleSiteVerification String?
+  bingSiteVerification   String?
+  affiliateDisclosure    String?
+  copyright              String?
+  searchPlaceholder      String?
+  headerCtaLabel         String?
+  headerCtaUrl           String?
+  footerDescription      String?
+  newsletterTitle        String?
+  newsletterText         String?
+  analyticsIds           Json?
+  updatedAt              DateTime @updatedAt
 }
