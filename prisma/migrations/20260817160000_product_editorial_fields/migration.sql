@@ -1,0 +1,7 @@
+ALTER TABLE "Product"
+  ADD COLUMN "keyFeatures" TEXT[] NOT NULL DEFAULT ARRAY[]::TEXT[],
+  ADD COLUMN "pros" TEXT[] NOT NULL DEFAULT ARRAY[]::TEXT[],
+  ADD COLUMN "cons" TEXT[] NOT NULL DEFAULT ARRAY[]::TEXT[],
+  ADD COLUMN "whyRecommend" TEXT,
+  ADD COLUMN "bestFor" TEXT,
+  ADD COLUMN "buyingAdvice" TEXT;

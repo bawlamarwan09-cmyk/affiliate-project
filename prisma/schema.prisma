@@ -59,6 +59,12 @@ model Product {
   badge            String?
   sku              String?
   availability     String?
+  keyFeatures      String[]
+  pros             String[]
+  cons             String[]
+  whyRecommend     String?
+  bestFor          String?
+  buyingAdvice     String?
   tags             String[]
   status           Status          @default(DRAFT)
   featured         Boolean         @default(false)

@@ -5,10 +5,10 @@ import { StoreDeals } from "./StoreDeals";
 export function ProductCard({ product }: { product: Product }) {
   return <article className="product-card">
     <div className="product-image">
-      {product.image ? <img src={product.image} alt={product.title} /> : <div className="product-image-fallback" aria-hidden="true">◇</div>}
+      <Link href={`/product/${product.slug}`} aria-label={`View ${product.title}`}>{product.image ? <img src={product.image} alt={product.title} /> : <div className="product-image-fallback" aria-hidden="true">◇</div>}</Link>
       {product.discountPercent ? <b>-{product.discountPercent}%</b> : product.badge ? <b>{product.badge}</b> : null}
     </div>
-    <div className="product-copy"><h3>{product.title}</h3>
+    <div className="product-copy"><h3><Link href={`/product/${product.slug}`}>{product.title}</Link></h3>
       {product.rating != null && <div className="rating"><span aria-label={`${product.rating} out of 5 stars`}>★★★★★</span> <small>({product.reviewCount?.toLocaleString() || 0})</small></div>}
       <div className="price"><strong>{product.currentPrice?.toLocaleString(undefined,{style:"currency",currency:"USD"})}</strong>{product.oldPrice && <s>{product.oldPrice.toLocaleString(undefined,{style:"currency",currency:"USD"})}</s>}</div>
       {product.store && <div className="product-store">{product.store.logo ? <img src={product.store.logo} alt={product.store.name}/> : <strong>{product.store.name}</strong>}</div>}
