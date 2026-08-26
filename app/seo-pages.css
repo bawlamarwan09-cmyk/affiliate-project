@@ -204,6 +204,15 @@
 
 .inline-disclosure a { color: var(--navy, #10192c); font-weight: 750; }
 .hero-disclosure { max-width: 610px; margin: 0 0 18px; }
+.reference-hero > .hero-disclosure {
+  grid-column: 1 / -1;
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  position: relative;
+  z-index: 3;
+  align-self: start;
+}
 .hero-disclosure .inline-disclosure {
   margin: 0;
   border-left-width: 3px;
@@ -212,6 +221,11 @@
   background: rgba(255, 246, 239, .9);
   font-size: .75rem;
   line-height: 1.45;
+}
+.reference-hero > .hero-disclosure .inline-disclosure {
+  width: 100%;
+  padding: 10px 14px;
+  font-size: .8rem;
 }
 .store-crawl-links { display: flex; flex-wrap: wrap; gap: 8px 16px; margin: 0 0 16px; font-size: .78rem; }
 .store-crawl-links a { color: #596174; text-decoration: underline; text-underline-offset: 3px; }
