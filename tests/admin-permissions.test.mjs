@@ -80,6 +80,7 @@ try {
   await admin.request("/admin/overview");
   await admin.request("/admin/settings");
   await admin.request("/admin/admins");
+  await admin.request("/admin/subscribers");
 
   const managedEditor = await admin.request("/admin/admins", "POST", {
     name: `Managed Editor ${suffix}`,
@@ -129,6 +130,7 @@ try {
   await expectStatus(editor, 403, "/admin/settings");
   await expectStatus(editor, 403, "/admin/admins");
   await expectStatus(editor, 403, "/admin/contact-messages");
+  await expectStatus(editor, 403, "/admin/subscribers");
 
   await owner.request(`/admin/admins/${editorAccount.id}/toggle`, "POST", { active: false });
   await expectStatus(editor, 401, "/auth/session");
