@@ -7,8 +7,8 @@ import { randomUUID } from "node:crypto";
 import path from "node:path";
 import { requireAdmin, requireAdminRole } from "./auth.js";
 import type { AdminRole, AuthenticatedAdmin } from "./auth.js";
+import { uploadDirectory } from "./uploads.js";
 import multer from "multer";
-import { v2 as cloudinary } from "cloudinary";
 import bcrypt from "bcryptjs";
 
 const safeHttpUrl=(value:string)=>{try{const url=new URL(value);return ["http:","https:"].includes(url.protocol)&&!url.username&&!url.password}catch{return false}};
@@ -120,19 +120,10 @@ export function adminRouter(prisma:PrismaClient){const router=Router();router.us
     const expectedMime=extension?({".jpg":"image/jpeg",".png":"image/png",".webp":"image/webp",".gif":"image/gif"} as const)[extension]:null;
     if(!extension||expectedMime!==req.file.mimetype)return res.status(400).json({success:false,message:"The uploaded file content does not match a supported image type"});
 
-    const cloudinaryConfigured=Boolean(process.env.CLOUDINARY_CLOUD_NAME&&process.env.CLOUDINARY_API_KEY&&process.env.CLOUDINARY_API_SECRET);
-    if(!cloudinaryConfigured){
-      if(process.env.NODE_ENV==="production")return res.status(503).json({success:false,message:"Image storage is not configured. Set the Cloudinary environment variables before uploading in production."});
-      const directory=path.resolve(process.cwd(),"public","uploads");
-      const filename=`${randomUUID()}${extension}`;
-      await mkdir(directory,{recursive:true});
-      await writeFile(path.join(directory,filename),req.file.buffer,{flag:"wx"});
-      return success(res,{url:`/uploads/${filename}`,publicId:null,storage:"local"},201);
-    }
-
-    cloudinary.config({cloud_name:process.env.CLOUDINARY_CLOUD_NAME,api_key:process.env.CLOUDINARY_API_KEY,api_secret:process.env.CLOUDINARY_API_SECRET});
-    const result=await new Promise<{secure_url:string;public_id:string}>((resolve,reject)=>{const stream=cloudinary.uploader.upload_stream({folder:"affiliate-project",resource_type:"image"},(error,result)=>{if(error)return reject(error);if(!result)return reject(new Error("Cloudinary returned no upload result"));return resolve(result)});stream.end(req.file!.buffer)});
-    return success(res,{url:result.secure_url,publicId:result.public_id,storage:"cloudinary"},201);
+    const filename=`${randomUUID()}${extension}`;
+    await mkdir(uploadDirectory,{recursive:true});
+    await writeFile(path.join(uploadDirectory,filename),req.file.buffer,{flag:"wx"});
+    return success(res,{url:`/uploads/${filename}`,publicId:null,storage:"local"},201);
   }catch(e){next(e)}});
   router.get("/overview",async(_req,res,next)=>{try{const [products,deals,stores,categories,posts,subscribers,guides,comparisons]=await Promise.all([prisma.product.count(),prisma.deal.count({where:{status:"ACTIVE"}}),prisma.store.count(),prisma.category.count(),prisma.blogPost.count(),prisma.newsletterSubscriber.count(),prisma.buyingGuide.count(),prisma.comparison.count()]);success(res,{products,deals,stores,categories,posts,subscribers,guides,comparisons})}catch(e){next(e)}});
   router.get("/options",async(_req,res,next)=>{try{const [products,categories,stores,brands,blogCategories,authors,guides]=await Promise.all([prisma.product.findMany({select:{id:true,title:true}}),prisma.category.findMany({select:{id:true,name:true}}),prisma.store.findMany({select:{id:true,name:true}}),prisma.brand.findMany({select:{id:true,name:true}}),prisma.blogCategory.findMany({select:{id:true,name:true}}),prisma.author.findMany({select:{id:true,name:true}}),prisma.buyingGuide.findMany({select:{id:true,title:true}})]);success(res,{products,categories,stores,brands,blogCategories,authors,guides})}catch(e){next(e)}});

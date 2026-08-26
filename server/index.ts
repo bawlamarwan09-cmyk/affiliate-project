@@ -8,10 +8,16 @@ import { PrismaClient, type Prisma } from "@prisma/client";
 import { z } from "zod";
 import { authRouter } from "./auth.js";
 import { adminRouter, apiError } from "./admin.js";
+import { uploadDirectory, uploadFilenamePattern } from "./uploads.js";
 
 export const prisma=new PrismaClient();
 const app=express();
 app.use(helmet());
+app.use("/uploads",(req,res,next)=>{
+  const filename=req.path.startsWith("/")?req.path.slice(1):req.path;
+  if(!uploadFilenamePattern.test(filename))return res.status(404).end();
+  return next();
+},express.static(uploadDirectory,{dotfiles:"deny",index:false,maxAge:"1y",immutable:true}));
 app.use(cors({origin:process.env.FRONTEND_URL,credentials:true}));
 app.use(express.json({limit:"1mb"}));
 app.use(cookieParser());

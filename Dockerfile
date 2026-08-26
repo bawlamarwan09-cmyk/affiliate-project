@@ -28,7 +28,9 @@ RUN apt-get update \
   && apt-get install -y --no-install-recommends ca-certificates openssl \
   && rm -rf /var/lib/apt/lists/* \
   && groupadd --system --gid 1001 bargainmom \
-  && useradd --uid 1001 --gid bargainmom --create-home --shell /usr/sbin/nologin bargainmom
+  && useradd --uid 1001 --gid bargainmom --create-home --shell /usr/sbin/nologin bargainmom \
+  && mkdir -p /app/uploads \
+  && chown bargainmom:bargainmom /app/uploads
 
 COPY --from=builder --chown=bargainmom:bargainmom /app /app
 

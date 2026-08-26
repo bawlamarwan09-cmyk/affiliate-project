@@ -12,3 +12,5 @@ npm-debug.log*
 *.local
 outputs
 work
+public/uploads
+uploads
