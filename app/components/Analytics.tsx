@@ -1,12 +1,13 @@
 import Script from "next/script";
 
 const DEFAULT_GTM_ID = "GTM-PVNN5BFQ";
+const DEFAULT_GA4_ID = "G-3BPZSB39ME";
 
 function analyticsIds(ids?: Record<string, unknown> | null) {
   const configuredGtm = typeof ids?.gtm === "string" ? ids.gtm.trim() : "";
   const configuredGa4 = typeof ids?.ga4 === "string" ? ids.ga4.trim() : "";
   const gtm = (configuredGtm || DEFAULT_GTM_ID).replace(/[^A-Z0-9-]/gi, "");
-  const ga4 = !gtm ? configuredGa4.replace(/[^A-Z0-9-]/gi, "") : "";
+  const ga4 = (configuredGa4 || DEFAULT_GA4_ID).replace(/[^A-Z0-9-]/gi, "");
 
   return { gtm, ga4 };
 }
