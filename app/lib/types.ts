@@ -52,6 +52,7 @@ export type SiteSettings = {
   googleSiteVerification?: string | null;
   bingSiteVerification?: string | null;
   socialMedia?: Record<string, unknown> | null;
+  announcementItems?: string[] | null;
   analyticsIds?: Record<string, unknown> | null;
 };
 
@@ -137,6 +138,7 @@ export type Product = SeoFields & {
   rating?: number | string | null;
   reviewCount?: number;
   affiliateUrl?: string | null;
+  affiliateLinkId?: string | null;
   ctaLabel?: string | null;
   badge?: string | null;
   sku?: string | null;

@@ -8,10 +8,11 @@ import {SafeImage} from "../../components/SafeImage";
 import {api} from "../../lib/api";
 import {publicApi} from "../../lib/public-api";
 import {entityMetadata} from "../../lib/seo";
+import type {BlogPost,BuyingGuide,Comparison} from "../../lib/types";
 import {EditorialCard,EmptyState,safeExternalUrls,styles,type Author} from "../../guides/ContentPrimitives";
 
 type Props={params:Promise<{slug:string}>;searchParams:Promise<Record<string,string|string[]|undefined>>};
-type AuthorPage=Author&{id:string;indexableWorkCount?:number;posts?:any[];guides?:any[];comparisons?:any[]};
+type AuthorPage=Author&{id:string;indexableWorkCount?:number;posts?:BlogPost[];guides?:BuyingGuide[];comparisons?:Comparison[]};
 const getAuthor=cache((slug:string)=>publicApi<AuthorPage>(`/authors/${encodeURIComponent(slug)}`));
 
 export async function generateMetadata({params,searchParams}:Props):Promise<Metadata>{
@@ -21,7 +22,7 @@ export async function generateMetadata({params,searchParams}:Props):Promise<Meta
   return entityMetadata(
     {robotsIndex:Object.keys(query).length===0&&Number(author.indexableWorkCount)>0,robotsFollow:true},
     {title:`${author.name} — Author`,description:author.bio||`Articles and buying guides written by ${author.name}.`,path:`/authors/${author.slug}`,image:author.profileImage},
-    settings as any,
+    settings,
   );
 }
 
@@ -32,7 +33,7 @@ export default async function AuthorProfilePage({params}:Props){
   const hasWork=Boolean(author.posts?.length||author.guides?.length||author.comparisons?.length);
   const profileUrls=safeExternalUrls(author.profileUrls);
   return <PublicShell><div className={`${styles.page} ${styles.narrow}`}>
-    <Breadcrumbs items={[{name:"Home",url:"/"},{name:author.name,url:`/authors/${author.slug}`}]} settings={settings as any}/>
+    <Breadcrumbs items={[{name:"Home",url:"/"},{name:author.name,url:`/authors/${author.slug}`}]} settings={settings}/>
     <header className={styles.profile}>
       {author.profileImage&&<SafeImage className={styles.profileImage} src={author.profileImage} alt={`${author.name} profile photo`} width={320} height={320} sizes="160px" priority/>}
       <div><span className={styles.eyebrow}>Author</span><h1 className={styles.title}>{author.name}</h1>{author.bio&&<p className={styles.lead}>{author.bio}</p>}{author.expertise?.length?<div className={styles.badgeList} aria-label="Areas of expertise">{author.expertise.map(item=><span key={item}>{item}</span>)}</div>:null}{profileUrls.length?<div className={styles.profileLinks}>{profileUrls.map(url=><a key={url} href={url} target="_blank" rel="me noopener noreferrer">Profile ↗</a>)}</div>:null}</div>

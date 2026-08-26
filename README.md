@@ -58,3 +58,61 @@ The optional demo products, prices, ratings, guides, comparisons, and articles a
 - `npm run test:rendered` — real rendered-HTML SEO checks (requires seeded API and frontend)
 
 For production, configure `SITE_URL`/`NEXT_PUBLIC_SITE_URL` with the public HTTPS origin and `API_URL`/`NEXT_PUBLIC_API_URL` with the deployed Express API. The frontend should not be published before the production PostgreSQL-backed API is reachable.
+
+## Contabo VPS deployment
+
+The included `compose.yaml` runs one frontend instance, the Express API, PostgreSQL, and Caddy. Only Caddy publishes ports; PostgreSQL, port 3000, and port 4000 remain private. Caddy automatically provisions HTTPS after a real domain points to the VPS.
+
+### 1. Prepare DNS and the VPS
+
+Use Ubuntu 24.04 LTS. Point the domain's `A` record to the Contabo IPv4 address. In both the Contabo firewall and UFW, allow SSH, HTTP, and HTTPS only: TCP ports `22`, `80`, and `443` (plus UDP `443` for HTTP/3). Do not expose PostgreSQL `5432` or the application ports `3000` and `4000`.
+
+Install Docker from Docker's official Ubuntu repository, including the Compose plugin. Then clone this repository:
+
+```bash
+git clone https://github.com/bawlamarwan09-cmyk/affiliate-project.git
+cd affiliate-project
+cp .env.production.example .env.production
+```
+
+### 2. Configure production secrets
+
+Edit `.env.production`. Set `DOMAIN` to the hostname without a scheme and `SITE_ORIGIN` to its full HTTPS origin. Generate unique database, JWT, and admin passwords. If the database password contains URL-reserved characters, URL-encode it in `DATABASE_URL`.
+
+For temporary IP-only testing before DNS is ready, use values such as:
+
+```dotenv
+DOMAIN=http://203.0.113.10
+SITE_ORIGIN=http://203.0.113.10
+```
+
+### 3. Build and start
+
+```bash
+docker compose --env-file .env.production up -d --build
+docker compose --env-file .env.production ps
+docker compose --env-file .env.production logs --tail=100 api web caddy
+```
+
+The API container applies committed Prisma migrations before it starts. Create the initial admin once:
+
+```bash
+docker compose --env-file .env.production exec api npm run db:seed
+```
+
+Do not run the demo seed on the production site unless clearly labeled sample content is intentional.
+
+### Updating the site
+
+```bash
+git pull --ff-only
+docker compose --env-file .env.production up -d --build
+```
+
+### Backup PostgreSQL
+
+```bash
+docker compose --env-file .env.production exec -T db pg_dump -U affiliate affiliate > affiliate-backup.sql
+```
+
+Store backups away from the VPS. Test restoration before relying on the backup procedure.

@@ -9,12 +9,24 @@ import { publicApi } from "../lib/public-api";
 import { absoluteUrl } from "../lib/seo";
 import type { PaginationData, Product } from "../lib/types";
 
-type Params = Promise<{ q?: string; page?: string }>;
+type SearchParamValue = string | string[] | undefined;
+type Params = Promise<{ q?: SearchParamValue; page?: SearchParamValue }>;
 type ProductResults = { items: Product[]; pagination: PaginationData; query: string };
 
+function firstParam(value: SearchParamValue): string {
+  return Array.isArray(value) ? value[0] || "" : value || "";
+}
+
+function normalizedSearch(params: Awaited<Params>) {
+  const q = firstParam(params.q).trim();
+  const page = Math.max(1, Number.parseInt(firstParam(params.page) || "1", 10) || 1);
+  return { q, page };
+}
+
 export async function generateMetadata({ searchParams }: { searchParams: Params }): Promise<Metadata> {
-  const [{ q = "" }, settings] = await Promise.all([searchParams, api.settings()]);
-  const title = q.trim() ? `Search results for “${q.trim()}”` : "Search deals";
+  const [params, settings] = await Promise.all([searchParams, api.settings()]);
+  const { q } = normalizedSearch(params);
+  const title = q ? `Search results for “${q}”` : "Search deals";
   return {
     title,
     description: "Search Bargain MOM product research and deal listings.",
@@ -26,8 +38,7 @@ export async function generateMetadata({ searchParams }: { searchParams: Params 
 
 export default async function SearchPage({ searchParams }: { searchParams: Params }) {
   const params = await searchParams;
-  const q = (params.q || "").trim();
-  const page = Math.max(1, Number.parseInt(params.page || "1", 10) || 1);
+  const { q, page } = normalizedSearch(params);
   const [results, settings] = await Promise.all([
     q ? publicApi<ProductResults>(`/products?q=${encodeURIComponent(q)}&page=${page}`) : null,
     api.settings(),

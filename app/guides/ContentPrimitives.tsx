@@ -10,7 +10,7 @@ export type Author={name:string;slug:string;bio?:string|null;profileImage?:strin
 
 export function pageNumber(value:string|string[]|undefined){const raw=Array.isArray(value)?value[0]:value;const valueNumber=Number.parseInt(raw||"1",10);return Number.isFinite(valueNumber)&&valueNumber>0?valueNumber:1}
 export function hasUnlistedParams(params:Record<string,string|string[]|undefined>,allowed=["page"]){const rawPage=params.page;const invalidPage=rawPage!==undefined&&(Array.isArray(rawPage)||!/^\d+$/.test(rawPage)||Number(rawPage)<1);return invalidPage||Object.keys(params).some(key=>!allowed.includes(key))}
-export function asFaqItems(value:unknown){if(!Array.isArray(value))return [];return value.filter((item):item is {question:string;answer:string}=>Boolean(item&&typeof item==="object"&&typeof (item as any).question==="string"&&typeof (item as any).answer==="string"))}
+export function asFaqItems(value:unknown){if(!Array.isArray(value))return [];return value.filter((item):item is {question:string;answer:string}=>Boolean(item&&typeof item==="object"&&"question" in item&&"answer" in item&&typeof item.question==="string"&&typeof item.answer==="string"))}
 export function safeExternalUrls(value?:string[]){return (value||[]).filter(raw=>{try{return ["http:","https:"].includes(new URL(raw).protocol)}catch{return false}})}
 
 export function RichText({text}:{text?:string|null}){

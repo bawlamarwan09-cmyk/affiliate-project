@@ -1,10 +1,12 @@
 import "dotenv/config";
 import { Prisma, PrismaClient, SectionType } from "@prisma/client";
+import { howtoPageSeed } from "./howto-page-data.js";
 
 const prisma = new PrismaClient();
 const CONTENT_DATE = new Date("2026-08-17T12:00:00.000Z");
-const DEMO_DEAL_START = new Date("2025-01-01T00:00:00.000Z");
-const DEMO_DEAL_END = new Date("2025-12-31T23:59:59.000Z");
+const DEMO_SEED_RUN = new Date();
+const DEMO_DEAL_START = new Date(DEMO_SEED_RUN.getTime() - 24 * 60 * 60 * 1000);
+const DEMO_DEAL_END = new Date(DEMO_SEED_RUN.getTime() + 30 * 24 * 60 * 60 * 1000);
 
 const image = (id: string) =>
   id.startsWith("http")
@@ -14,14 +16,38 @@ const logo = (name: string, color = "071225") =>
   `https://placehold.co/260x90/ffffff/${color}?text=${encodeURIComponent(name)}`;
 const json = (value: unknown) => value as Prisma.InputJsonValue;
 const slugify = (value: string) => value.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+const retailerSearchUrl = (store: string, title: string) => {
+  const query = encodeURIComponent(title);
+  if (store === "amazon") return `https://www.amazon.com/s?k=${query}`;
+  if (store === "walmart") return `https://www.walmart.com/search?q=${query}`;
+  if (store === "target") return `https://www.target.com/s?searchTerm=${query}`;
+  if (store === "ebay") return `https://www.ebay.com/sch/i.html?_nkw=${query}`;
+  return `https://www.bestbuy.com/site/searchpage.jsp?st=${query}`;
+};
+const retailerLabel = (store: string) => storeSeed.find((item) => item.slug === store)?.name || "the retailer";
 
 const affiliateDisclosure =
   "Bargain MOM may earn a commission when you buy through links on this site, at no additional cost to you. Retailers set their own prices, availability, shipping, and return terms.";
+const socialMedia = {
+  x: "https://x.com/Bargainmomfinds",
+  pinterest: "https://www.pinterest.com/BargainMomFinds/",
+  facebook: "https://www.facebook.com/BargainMomFinds",
+  telegram: "https://t.me/+gg_SXlyZR7ZhNjA0",
+  instagram: "https://www.instagram.com/bargainmomfinds/",
+  tiktok: "https://www.tiktok.com/@bargainmomfinds",
+};
+const announcementItems = [
+  "Independent shopping research for U.S. shoppers",
+  "Clear affiliate disclosures on every recommendation",
+  "Product comparisons and practical buying guides",
+  "Retailer links for your next smart purchase",
+];
 
 await prisma.siteSettings.upsert({
   where: { id: "global" },
   update: {
     websiteName: "Bargain MOM",
+    logo: "/brand/bargain-mom-logo.webp",
     defaultSeoTitle: "Bargain MOM | Practical Deal Research for U.S. Shoppers",
     defaultSeoDescription:
       "Compare product details, shopping guidance, and retailer offers with clear affiliate disclosure.",
@@ -31,6 +57,8 @@ await prisma.siteSettings.upsert({
     homepageRobotsIndex: true,
     homepageRobotsFollow: true,
     homepageSchemaEnabled: true,
+    socialMedia: json(socialMedia),
+    announcementItems: json(announcementItems),
     affiliateDisclosure,
     copyright: "© Bargain MOM. Product names and trademarks belong to their respective owners.",
     searchPlaceholder: "Search products, brands, stores, or categories...",
@@ -44,12 +72,15 @@ await prisma.siteSettings.upsert({
   create: {
     id: "global",
     websiteName: "Bargain MOM",
+    logo: "/brand/bargain-mom-logo.webp",
     defaultSeoTitle: "Bargain MOM | Practical Deal Research for U.S. Shoppers",
     defaultSeoDescription:
       "Compare product details, shopping guidance, and retailer offers with clear affiliate disclosure.",
     homepageSeoTitle: "Bargain MOM | Deals, Comparisons, and Buying Guides",
     homepageSeoDescription:
       "Research products, compare retailer offers, and read practical buying guides created for U.S. shoppers.",
+    socialMedia: json(socialMedia),
+    announcementItems: json(announcementItems),
     affiliateDisclosure,
     copyright: "© Bargain MOM. Product names and trademarks belong to their respective owners.",
     searchPlaceholder: "Search products, brands, stores, or categories...",
@@ -486,6 +517,8 @@ for (let index = 0; index < productSeed.length; index += 1) {
   const item = productSeed[index];
   const brandSlug = slugify(item.brand);
   const categoryName = categorySeed.find((category) => category.slug === item.category)?.name ?? item.category;
+  const retailerName = retailerLabel(item.store);
+  const destination = retailerSearchUrl(item.store, item.title);
   const common = {
     title: item.title,
     description: `${item.summary} This is seeded demonstration content based on general product type and publicly described positioning; it is not a first-hand test or a verified live offer.`,
@@ -495,8 +528,8 @@ for (let index = 0; index < productSeed.length; index += 1) {
     discountPercent: item.discountPercent,
     rating: item.rating,
     reviewCount: item.reviewCount,
-    affiliateUrl: `https://example.com/demo/${item.slug}`,
-    ctaLabel: "View demo listing",
+    affiliateUrl: destination,
+    ctaLabel: `Search ${retailerName} for this model`,
     badge: null,
     availability: null,
     keyFeatures: [
@@ -531,6 +564,7 @@ for (let index = 0; index < productSeed.length; index += 1) {
     lastVerifiedAt: null,
     priceUpdatedAt: null,
     contentUpdatedAt: CONTENT_DATE,
+    tags: ["demo-seed", item.category],
     status: "ACTIVE" as const,
     featured: index < 8,
     categoryId: categories.get(item.category),
@@ -545,11 +579,27 @@ for (let index = 0; index < productSeed.length; index += 1) {
   const row = await prisma.product.upsert({
     where: { slug: item.slug },
     update: common,
-    create: { ...common, slug: item.slug, tags: ["demo-seed", item.category] },
+    create: { ...common, slug: item.slug },
   });
   await prisma.productImage.deleteMany({ where: { productId: row.id } });
   await prisma.productImage.create({
     data: { productId: row.id, url: image(item.image), altText: item.title, sortOrder: 0 },
+  });
+  await prisma.affiliateLink.upsert({
+    where: { id: `demo-retailer-search-${item.slug}` },
+    update: {
+      label: `Search ${retailerName} for this model`,
+      url: destination,
+      active: true,
+      productId: row.id,
+    },
+    create: {
+      id: `demo-retailer-search-${item.slug}`,
+      label: `Search ${retailerName} for this model`,
+      url: destination,
+      active: true,
+      productId: row.id,
+    },
   });
   products.push(row);
 }
@@ -563,9 +613,9 @@ for (let index = 0; index < 8; index += 1) {
       discountPercent: product.discountPercent,
       startsAt: DEMO_DEAL_START,
       endsAt: DEMO_DEAL_END,
-      status: "INACTIVE",
+      status: "ACTIVE",
       featured: false,
-      badge: null,
+      badge: "Demo offer — unverified",
       robotsIndex: false,
       robotsFollow: true,
       schemaEnabled: false,
@@ -576,8 +626,9 @@ for (let index = 0; index < 8; index += 1) {
       discountPercent: product.discountPercent,
       startsAt: DEMO_DEAL_START,
       endsAt: DEMO_DEAL_END,
-      status: "INACTIVE",
+      status: "ACTIVE",
       featured: false,
+      badge: "Demo offer — unverified",
       robotsIndex: false,
       robotsFollow: true,
       schemaEnabled: false,
@@ -1085,6 +1136,7 @@ for (let index = 0; index < comparisonSeed.length; index += 1) {
 }
 
 const trustPages = [
+  howtoPageSeed,
   {
     title: "About Bargain MOM",
     slug: "about",
@@ -1097,7 +1149,7 @@ const trustPages = [
     slug: "contact",
     intro: "Contact Bargain MOM about corrections, editorial questions, or business inquiries.",
     description: "Find guidance for contacting Bargain MOM about corrections, editorial questions, and affiliate disclosures.",
-    content: "Use the support email displayed on this site when the administrator has configured one. For a correction, include the page URL, the statement that may be inaccurate, and a reliable source when available.\n\nFor affiliate or business inquiries, identify the company and the purpose of the message. Contacting Bargain MOM does not guarantee editorial coverage or a favorable recommendation.\n\nDo not send passwords, payment-card details, health records, or other sensitive information.",
+    content: "Use the contact form below, or the support email displayed on this site when the administrator has configured one. For a correction, include the page URL, the statement that may be inaccurate, and a reliable source when available.\n\nFor affiliate or business inquiries, identify the company and the purpose of the message. Contacting Bargain MOM does not guarantee editorial coverage or a favorable recommendation.\n\nDo not send passwords, payment-card details, health records, or other sensitive information.",
   },
   {
     title: "Editorial Policy",
@@ -1147,7 +1199,7 @@ for (let index = 0; index < trustPages.length; index += 1) {
     seoDescription: page.description,
     robotsIndex: true,
     robotsFollow: true,
-    schemaEnabled: false,
+    schemaEnabled: page.slug === "howto",
   };
   await prisma.editorialPage.upsert({ where: { slug: page.slug }, update: data, create: { ...data, slug: page.slug } });
 }
@@ -1169,6 +1221,11 @@ for (const navItem of navItems) {
     create: { ...navItem, active: true },
   });
 }
+await prisma.navigationItem.upsert({
+  where: { id: "seed-nav-promo-guide" },
+  update: { label: "Promo Code Guide", url: "/howto", sortOrder: 0, active: true, parentId: "seed-nav-guides" },
+  create: { id: "seed-nav-promo-guide", label: "Promo Code Guide", url: "/howto", sortOrder: 0, active: true, parentId: "seed-nav-guides" },
+});
 
 const footerSections = [
   {
@@ -1180,6 +1237,7 @@ const footerSections = [
       { id: "footer-categories", label: "Categories", url: "/categories" },
       { id: "footer-stores", label: "Stores", url: "/stores" },
       { id: "footer-guides", label: "Buying Guides", url: "/guides" },
+      { id: "footer-howto", label: "Promo Code Guide", url: "/howto" },
       { id: "footer-compare", label: "Comparisons", url: "/compare" },
     ]),
   },

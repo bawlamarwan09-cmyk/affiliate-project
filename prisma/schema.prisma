@@ -563,6 +563,19 @@ model NewsletterSubscriber {
   createdAt DateTime @default(now())
 }
 
+model ContactMessage {
+  id        String    @id @default(cuid())
+  name      String
+  email     String
+  subject   String?
+  message   String
+  readAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([createdAt])
+  @@index([readAt])
+}
+
 model SeoMetadata {
   id             String  @id @default(cuid())
   entityType     String
@@ -588,6 +601,7 @@ model SiteSettings {
   accentColor            String   @default("#f36b2b")
   supportEmail           String?
   socialMedia            Json?
+  announcementItems      Json?
   defaultSeoTitle        String?
   defaultSeoDescription  String?
   siteUrl                String?

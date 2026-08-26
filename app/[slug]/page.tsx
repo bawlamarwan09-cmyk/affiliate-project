@@ -18,16 +18,16 @@ export async function generateMetadata({params,searchParams}:Props):Promise<Meta
   const [{slug},query]=await Promise.all([params,searchParams]);
   const [page,settings]=await Promise.all([getPage(slug),api.settings()]);
   if(!page)return {title:"Page not found",robots:{index:false,follow:true}};
-  return entityMetadata({...page,robotsIndex:page.robotsIndex!==false&&Object.keys(query).length===0},{title:page.title,description:page.intro||page.content.slice(0,160),path:`/${page.slug}`},settings as any);
+  return entityMetadata({...page,robotsIndex:page.robotsIndex!==false&&Object.keys(query).length===0},{title:page.title,description:page.intro||page.content.slice(0,160),path:`/${page.slug}`},settings);
 }
 
 export default async function EditorialPage({params}:Props){
   const {slug}=await params;
   const [page,settings]=await Promise.all([getPage(slug),api.settings()]);
   if(!page)notFound();
-  const schema=page.schemaEnabled?{"@context":"https://schema.org","@type":"WebPage",name:page.title,description:page.intro||undefined,url:absoluteUrl(page.canonicalUrl||`/${page.slug}`,settings as any),datePublished:page.publishedAt||undefined,dateModified:page.updatedAt}:null;
+  const schema=page.schemaEnabled?{"@context":"https://schema.org","@type":"WebPage",name:page.title,description:page.intro||undefined,url:absoluteUrl(page.canonicalUrl||`/${page.slug}`,settings),datePublished:page.publishedAt||undefined,dateModified:page.updatedAt}:null;
   return <PublicShell><article className={`${styles.page} ${styles.narrow} ${styles.legal}`}>
-    <Breadcrumbs items={[{name:"Home",url:"/"},{name:page.title,url:`/${page.slug}`}]} settings={settings as any} schema={page.schemaEnabled!==false}/>
+    <Breadcrumbs items={[{name:"Home",url:"/"},{name:page.title,url:`/${page.slug}`}]} settings={settings} schema={page.schemaEnabled!==false}/>
     <header><span className={styles.eyebrow}>Bargain MOM</span><h1 className={styles.title}>{page.title}</h1>{page.intro&&<p className={styles.lead}>{page.intro}</p>}<p className={styles.meta}>{page.publishedAt&&<>Published <time dateTime={page.publishedAt}>{formatDate(page.publishedAt)}</time><span aria-hidden="true"> · </span></>}Last updated <time dateTime={page.updatedAt}>{formatDate(page.updatedAt)}</time></p></header>
     <div className={styles.body}><RichText text={page.content}/></div>
     {schema&&<JsonLd id="editorial-page-jsonld" data={schema}/>}

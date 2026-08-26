@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Header } from "./components/Header";
+import { AnnouncementTicker } from "./components/PublicShell";
 import { HomepageRenderer } from "./components/HomepageRenderer";
 import { PageEvent } from "./components/PageEvent";
 import { SiteFooter } from "./components/SiteFooter";
@@ -37,6 +38,7 @@ export default async function Home() {
 
   return (
     <div className="site-shell">
+      <AnnouncementTicker items={settings.announcementItems} />
       <Header navigation={navigation} settings={settings} />
       <main>
         <PageEvent name="homepage_view" />
