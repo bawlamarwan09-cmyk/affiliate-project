@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import type { CSSProperties } from "react";
 import { Geist, Manrope } from "next/font/google";
-import { Analytics } from "./components/Analytics";
+import { Analytics, AnalyticsNoScript } from "./components/Analytics";
 import { DealsEmailPopup } from "./components/DealsEmailPopup";
 import { JsonLd } from "./components/JsonLd";
 import { api } from "./lib/api";
@@ -91,6 +91,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   return (
     <html lang="en-US">
       <body className={`${sans.variable} ${display.variable}`} style={theme}>
+        <AnalyticsNoScript ids={settings.analyticsIds} />
         <JsonLd id="site-jsonld" data={schema} />
         {children}
         <DealsEmailPopup label={settings.newsletterTitle} description={settings.newsletterText} />
