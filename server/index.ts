@@ -12,6 +12,9 @@ import { uploadDirectory, uploadFilenamePattern } from "./uploads.js";
 
 export const prisma=new PrismaClient();
 const app=express();
+// Nginx/Caddy is the only public entry point in production. Trust forwarding
+// headers only when the direct proxy connection comes from a local/private net.
+app.set("trust proxy","loopback, linklocal, uniquelocal");
 app.use(helmet());
 app.use("/uploads",(req,res,next)=>{
   const filename=req.path.startsWith("/")?req.path.slice(1):req.path;
