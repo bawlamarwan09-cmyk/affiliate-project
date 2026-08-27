@@ -12,8 +12,9 @@ const image = (id: string) =>
   id.startsWith("http")
     ? id
     : `https://images.unsplash.com/${id}?auto=format&fit=crop&w=700&h=560&q=82`;
-const logo = (name: string, color = "071225") =>
-  `https://placehold.co/260x90/ffffff/${color}?text=${encodeURIComponent(name)}`;
+// Demo records should never depend on a third-party placeholder service. Admins can
+// upload real logos later; the seed preserves those uploaded paths on future runs.
+const logo = (_name: string, _color = "071225") => null;
 const json = (value: unknown) => value as Prisma.InputJsonValue;
 const slugify = (value: string) => value.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
 const retailerSearchUrl = (store: string, title: string) => {
@@ -413,9 +414,12 @@ const categorySeed = [
 
 const stores = new Map<string, string>();
 for (const value of storeSeed) {
+  const existing = await prisma.store.findUnique({ where: { slug: value.slug }, select: { logo: true } });
+  const { logo: _demoLogo, ...fields } = value;
+  const savedLogo = existing?.logo?.startsWith("https://placehold.co/") ? null : existing?.logo ?? null;
   const row = await prisma.store.upsert({
     where: { slug: value.slug },
-    update: { ...value, faqItems: value.faqItems, active: true, robotsIndex: true, robotsFollow: true, schemaEnabled: true },
+    update: { ...fields, logo: savedLogo, faqItems: value.faqItems, active: true, robotsIndex: true, robotsFollow: true, schemaEnabled: true },
     create: { ...value, faqItems: value.faqItems, active: true, robotsIndex: true, robotsFollow: true, schemaEnabled: true },
   });
   stores.set(value.slug, row.id);
@@ -460,12 +464,14 @@ const brands = new Map<string, string>();
 for (const name of brandNames) {
   const slug = slugify(name);
   const description = `Catalog records for ${name} products used to demonstrate the editorial and comparison workflow. Verify product and trademark details before publication.`;
+  const existing = await prisma.brand.findUnique({ where: { slug }, select: { logo: true } });
+  const savedLogo = existing?.logo?.startsWith("https://placehold.co/") ? null : existing?.logo ?? null;
   const row = await prisma.brand.upsert({
     where: { slug },
     update: {
       name,
       description,
-      logo: logo(name),
+      logo: savedLogo,
       active: true,
       seoTitle: `${name} Product Research | Bargain MOM`,
       seoDescription: description,
