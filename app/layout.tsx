@@ -15,6 +15,7 @@ const sans = Geist({ variable: "--font-sans", subsets: ["latin"], display: "swap
 const display = Manrope({ variable: "--font-display", subsets: ["latin"], display: "swap" });
 const colorPattern = /^#(?:[0-9a-f]{3}|[0-9a-f]{4}|[0-9a-f]{6}|[0-9a-f]{8})$/i;
 const safeColor = (value: string | undefined, fallback: string) => value && colorPattern.test(value) ? value : fallback;
+const pinterestDomainVerification = "a0ff8dd80a68642b401d4cad1be8ecb5";
 
 export async function generateMetadata(): Promise<Metadata> {
   const settings = await api.settings();
@@ -42,9 +43,10 @@ export async function generateMetadata(): Promise<Metadata> {
     },
     verification: {
       google: settings.googleSiteVerification || undefined,
-      other: settings.bingSiteVerification
-        ? { "msvalidate.01": settings.bingSiteVerification }
-        : undefined,
+      other: {
+        "p:domain_verify": pinterestDomainVerification,
+        ...(settings.bingSiteVerification ? { "msvalidate.01": settings.bingSiteVerification } : {}),
+      },
     },
     formatDetection: { address: false, email: false, telephone: false },
   };

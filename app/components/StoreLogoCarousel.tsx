@@ -6,7 +6,7 @@ import type { Store } from "../lib/types";
 import { SafeImage } from "./SafeImage";
 
 type StoreLogo = Pick<Store, "id" | "name" | "slug" | "logo">;
-const AUTO_SCROLL_DELAY_MS = 3_500;
+const AUTO_SCROLL_DELAY_MS = 2_500;
 
 function scrollStep(track: HTMLDivElement) {
   const firstStore = track.firstElementChild;
@@ -56,8 +56,6 @@ export function StoreLogoCarousel({ title, subtitle, stores }: { title?: string;
   return <section
     className="store-logo-rail"
     aria-label={title || "Browse by store"}
-    onMouseEnter={() => setPaused(true)}
-    onMouseLeave={() => setPaused(false)}
     onFocusCapture={() => setPaused(true)}
     onBlurCapture={(event) => {
       if (!event.currentTarget.contains(event.relatedTarget)) setPaused(false);
