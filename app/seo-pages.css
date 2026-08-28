@@ -305,7 +305,21 @@
 .badge-row .discount-badge,
 .affiliate-cta,
 .product-not-found a { background: var(--orange, #f36b2b); }
-.product-image b.secondary-badge { inset: auto 8px 8px 8px; max-width: calc(100% - 16px); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-align: center; }
+.product-image { overflow: hidden; isolation: isolate; }
+.product-image b.secondary-badge {
+  inset: auto 10px 10px auto;
+  width: auto;
+  max-width: min(62%, 150px);
+  padding: 7px 10px;
+  overflow: hidden;
+  border-radius: 6px;
+  font-size: 9px;
+  line-height: 1;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-align: right;
+}
+.product-copy { position: relative; z-index: 1; background: #fff; }
 .reference-hero::before { background-image: radial-gradient(var(--orange, #f36b2b) 1.2px, transparent 1.2px); }
 .hero-copy h1 em,
 .hero-benefits span::first-letter,
