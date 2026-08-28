@@ -142,6 +142,7 @@
 /* Keep retailer logos crisp and proportional inside every product card. */
 .product-store{min-height:30px;overflow:hidden}
 .product-store img{display:block;width:90px;height:28px;max-width:90px;max-height:28px;margin:0;object-fit:contain;object-position:left center}
+.product-store img[alt^="Amazon"]{object-fit:cover;object-position:center}
 @media(max-width:540px){
   .product-store{min-height:28px}
   .product-store img{width:82px;height:26px;max-width:82px;max-height:26px}
