@@ -38,3 +38,33 @@
 /* Newsletter subscriber management */
 .subscriber-tools{display:flex;gap:12px;margin-bottom:16px;padding:16px;background:#fff;border:1px solid #e0dfda}.subscriber-tools label{display:flex;flex-direction:column;gap:6px;color:#6b7688;font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.08em}.subscriber-tools label:first-child{flex:1}.subscriber-tools input,.subscriber-tools select{height:40px;min-width:190px;border:1px solid #d8d6d0;border-radius:4px;background:#fff;padding:0 12px;color:#17233a;font-size:12px;outline:0}.subscriber-tools input:focus,.subscriber-tools select:focus{border-color:#f16b2e;box-shadow:0 0 0 3px #f16b2e1f}.subscriber-row{grid-template-columns:2fr .65fr 1.1fr 1.2fr}.subscriber-row a{font-weight:750;color:#17233a;text-decoration:none}.subscriber-row a:hover{text-decoration:underline}.subscriber-row time{color:#6f7989;font-size:10px}.subscribers .resource-head>button:disabled{cursor:not-allowed;opacity:.5}
 @media(max-width:560px){.subscriber-tools{flex-direction:column}.subscriber-tools input,.subscriber-tools select{width:100%;min-width:0}.subscriber-row{min-width:720px}}
+
+/* Consistent, client-friendly form controls across every admin editor. */
+.form-grid label,.form-grid .form-field{display:flex;flex-direction:column;gap:8px;min-width:0;font-size:10px;font-weight:700}
+.form-grid .form-field.wide{grid-column:1/-1}
+.form-grid input:not([type="checkbox"]):not([type="file"]),.form-grid textarea,.form-grid select{min-height:46px;border:1px solid #d4d9e1;border-radius:8px;background:#fff;color:#17233a;padding:11px 13px;font:600 12px/1.45 var(--font-sans);transition:border-color .16s,box-shadow .16s,background .16s}
+.form-grid textarea{min-height:104px}
+.form-grid input:not([type="checkbox"]):not([type="file"]):focus,.form-grid textarea:focus,.form-grid select:focus{border-color:#f16b2e;background:#fff;box-shadow:0 0 0 3px rgba(241,107,46,.12)}
+.form-grid select:not([multiple]){cursor:pointer}
+.form-grid input[type="checkbox"]{accent-color:#f16b2e}
+.upload-field{border-color:#c9ced7;border-radius:8px;background:#fff;padding:14px}
+.upload-field>input[type="file"]{border:1px solid #d4d9e1;border-radius:7px;background:#f9fafc;padding:9px;color:#26344b}
+
+.multi-select{position:relative;width:100%}
+.multi-select-trigger{display:flex;align-items:center;gap:9px;width:100%;min-height:46px;padding:10px 12px;border:1px solid #d4d9e1;border-radius:8px;background:#fff;color:#17233a;text-align:left;cursor:pointer;transition:border-color .16s,box-shadow .16s}
+.multi-select-trigger>span{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px;font-weight:650}
+.multi-select-trigger>small{flex:0 0 auto;margin:0;border-radius:999px;background:#eef2f7;color:#647187;padding:4px 7px;font-size:9px;font-weight:750}
+.multi-select.open .multi-select-trigger,.multi-select-trigger:focus-visible{outline:0;border-color:#f16b2e;box-shadow:0 0 0 3px rgba(241,107,46,.12)}
+.multi-select-menu{position:absolute;z-index:30;top:calc(100% + 6px);left:0;right:0;overflow:hidden;border:1px solid #d4d9e1;border-radius:9px;background:#fff;box-shadow:0 18px 42px rgba(9,22,43,.18)}
+.multi-select-tools{display:flex;align-items:center;gap:8px;padding:10px;border-bottom:1px solid #e7e9ee;background:#f7f8fa}
+.form-grid .multi-select-tools input[type="search"]{min-height:38px;height:38px;padding:8px 10px;border-radius:6px;font-size:11px}
+.multi-select-tools button{height:38px;border:1px solid #d3d8e0;border-radius:6px;background:#fff;color:#536078;padding:0 10px;font-size:10px;font-weight:750;cursor:pointer}
+.multi-select-options{max-height:230px;overflow-y:auto;padding:6px;scrollbar-width:thin;scrollbar-color:#a8b0bd transparent}
+.form-grid .multi-select-option{display:flex;flex-direction:row;align-items:flex-start;gap:10px;padding:9px 10px;border-radius:6px;color:#243149;font-size:11px;font-weight:600;line-height:1.35;cursor:pointer}
+.form-grid .multi-select-option:hover{background:#f4f6f9}
+.form-grid .multi-select-option:has(input:checked){background:#fff0e9;color:#a94318}
+.multi-select-option input{flex:0 0 auto;width:15px;height:15px;margin:0}
+.multi-select-option span{min-width:0}
+.multi-select-options>p{margin:0;padding:18px;text-align:center;color:#7b8698;font-size:11px;font-weight:600}
+
+@media(max-width:850px){.form-grid .form-field.wide{grid-column:auto}.multi-select-menu{position:relative;top:5px;margin-bottom:5px}}
