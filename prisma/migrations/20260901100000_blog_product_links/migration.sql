@@ -1,0 +1,2 @@
+ALTER TABLE "BlogPost"
+ADD COLUMN "productLinks" TEXT[] NOT NULL DEFAULT ARRAY[]::TEXT[];

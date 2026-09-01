@@ -320,6 +320,7 @@ model BlogPost {
   excerpt                    String?
   content                    String
   coverImage                 String?
+  productLinks               String[]           @default([])
   author                     String?
   authorId                   String?
   authorProfile              Author?            @relation(fields: [authorId], references: [id])

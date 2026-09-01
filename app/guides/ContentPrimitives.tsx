@@ -13,9 +13,9 @@ export function hasUnlistedParams(params:Record<string,string|string[]|undefined
 export function asFaqItems(value:unknown){if(!Array.isArray(value))return [];return value.filter((item):item is {question:string;answer:string}=>Boolean(item&&typeof item==="object"&&"question" in item&&"answer" in item&&typeof item.question==="string"&&typeof item.answer==="string"))}
 export function safeExternalUrls(value?:string[]){return (value||[]).filter(raw=>{try{return ["http:","https:"].includes(new URL(raw).protocol)}catch{return false}})}
 
-export function RichText({text}:{text?:string|null}){
+export function RichText({text,sectionHeadingLevel=2}:{text?:string|null;sectionHeadingLevel?:2|3}){
   if(!text)return null;
-  return <>{text.split(/\n\s*\n/).map((raw,index)=>{const block=raw.trim();if(!block)return null;if(block.startsWith("### "))return <h3 key={index}>{block.slice(4)}</h3>;if(block.startsWith("## "))return <h2 key={index}>{block.slice(3)}</h2>;const lines=block.split("\n");if(lines.every(line=>/^[-*] /.test(line.trim())))return <ul key={index}>{lines.map(line=><li key={line}>{line.trim().slice(2)}</li>)}</ul>;return <p key={index}>{block}</p>})}</>;
+  return <>{text.split(/\n\s*\n/).map((raw,index)=>{const block=raw.trim();if(!block)return null;if(block.startsWith("### ")||block.startsWith("## ")){const heading=block.replace(/^#{2,3}\s+/,"");return sectionHeadingLevel===3?<h3 key={index}>{heading}</h3>:<h2 key={index}>{heading}</h2>}const lines=block.split("\n");if(lines.every(line=>/^[-*] /.test(line.trim())))return <ul key={index}>{lines.map(line=><li key={line}>{line.trim().slice(2)}</li>)}</ul>;return <p key={index}>{block}</p>})}</>;
 }
 
 export function Byline({author,publishedAt,updatedAt,readingTime}:{author?:Author|null;publishedAt?:string|null;updatedAt?:string|null;readingTime?:number|null}){
