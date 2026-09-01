@@ -13,9 +13,30 @@ export function hasUnlistedParams(params:Record<string,string|string[]|undefined
 export function asFaqItems(value:unknown){if(!Array.isArray(value))return [];return value.filter((item):item is {question:string;answer:string}=>Boolean(item&&typeof item==="object"&&"question" in item&&"answer" in item&&typeof item.question==="string"&&typeof item.answer==="string"))}
 export function safeExternalUrls(value?:string[]){return (value||[]).filter(raw=>{try{return ["http:","https:"].includes(new URL(raw).protocol)}catch{return false}})}
 
+type RichTextBlock={type:"heading"|"paragraph"|"list";value:string|string[]};
+export function richTextBlocks(text:string){
+  const blocks:RichTextBlock[]=[];
+  let paragraph:string[]=[];
+  let list:string[]=[];
+  const flushParagraph=()=>{if(paragraph.length){blocks.push({type:"paragraph",value:paragraph.join("\n")});paragraph=[]}};
+  const flushList=()=>{if(list.length){blocks.push({type:"list",value:list});list=[]}};
+  for(const sourceLine of text.replace(/\r\n?/g,"\n").split("\n")){
+    const line=sourceLine.trimEnd();
+    const trimmed=line.trim();
+    if(!trimmed){flushParagraph();flushList();continue}
+    const heading=trimmed.match(/^#{2,3}\s+(.+)$/);
+    if(heading){flushParagraph();flushList();blocks.push({type:"heading",value:heading[1]});continue}
+    const listItem=trimmed.match(/^[-*]\s+(.+)$/);
+    if(listItem){flushParagraph();list.push(listItem[1]);continue}
+    flushList();paragraph.push(line);
+  }
+  flushParagraph();flushList();
+  return blocks;
+}
+
 export function RichText({text,sectionHeadingLevel=2}:{text?:string|null;sectionHeadingLevel?:2|3}){
   if(!text)return null;
-  return <>{text.split(/\n\s*\n/).map((raw,index)=>{const block=raw.trim();if(!block)return null;if(block.startsWith("### ")||block.startsWith("## ")){const heading=block.replace(/^#{2,3}\s+/,"");return sectionHeadingLevel===3?<h3 key={index}>{heading}</h3>:<h2 key={index}>{heading}</h2>}const lines=block.split("\n");if(lines.every(line=>/^[-*] /.test(line.trim())))return <ul key={index}>{lines.map(line=><li key={line}>{line.trim().slice(2)}</li>)}</ul>;return <p key={index}>{block}</p>})}</>;
+  return <>{richTextBlocks(text).map((block,index)=>{if(block.type==="heading")return sectionHeadingLevel===3?<h3 key={index}>{String(block.value)}</h3>:<h2 key={index}>{String(block.value)}</h2>;if(block.type==="list")return <ul key={index}>{(block.value as string[]).map((item,itemIndex)=><li key={`${item}-${itemIndex}`}>{item}</li>)}</ul>;return <p key={index}>{String(block.value)}</p>})}</>;
 }
 
 export function Byline({author,publishedAt,updatedAt,readingTime}:{author?:Author|null;publishedAt?:string|null;updatedAt?:string|null;readingTime?:number|null}){
