@@ -1,6 +1,7 @@
 import Link from "next/link";
 import {SafeImage} from "../components/SafeImage";
 import {formatDate} from "../lib/format";
+import {richTextBlocks} from "../lib/rich-text";
 import styles from "./content.module.css";
 
 export {styles};
@@ -13,30 +14,9 @@ export function hasUnlistedParams(params:Record<string,string|string[]|undefined
 export function asFaqItems(value:unknown){if(!Array.isArray(value))return [];return value.filter((item):item is {question:string;answer:string}=>Boolean(item&&typeof item==="object"&&"question" in item&&"answer" in item&&typeof item.question==="string"&&typeof item.answer==="string"))}
 export function safeExternalUrls(value?:string[]){return (value||[]).filter(raw=>{try{return ["http:","https:"].includes(new URL(raw).protocol)}catch{return false}})}
 
-type RichTextBlock={type:"heading"|"paragraph"|"list";value:string|string[]};
-export function richTextBlocks(text:string){
-  const blocks:RichTextBlock[]=[];
-  let paragraph:string[]=[];
-  let list:string[]=[];
-  const flushParagraph=()=>{if(paragraph.length){blocks.push({type:"paragraph",value:paragraph.join("\n")});paragraph=[]}};
-  const flushList=()=>{if(list.length){blocks.push({type:"list",value:list});list=[]}};
-  for(const sourceLine of text.replace(/\r\n?/g,"\n").split("\n")){
-    const line=sourceLine.trimEnd();
-    const trimmed=line.trim();
-    if(!trimmed){flushParagraph();flushList();continue}
-    const heading=trimmed.match(/^#{2,3}\s+(.+)$/);
-    if(heading){flushParagraph();flushList();blocks.push({type:"heading",value:heading[1]});continue}
-    const listItem=trimmed.match(/^[-*]\s+(.+)$/);
-    if(listItem){flushParagraph();list.push(listItem[1]);continue}
-    flushList();paragraph.push(line);
-  }
-  flushParagraph();flushList();
-  return blocks;
-}
-
-export function RichText({text,sectionHeadingLevel=2}:{text?:string|null;sectionHeadingLevel?:2|3}){
+export function RichText({text,sectionHeadingLevel=2,documentTitle,inferNaturalStructure=false}:{text?:string|null;sectionHeadingLevel?:2|3;documentTitle?:string;inferNaturalStructure?:boolean}){
   if(!text)return null;
-  return <>{richTextBlocks(text).map((block,index)=>{if(block.type==="heading")return sectionHeadingLevel===3?<h3 key={index}>{String(block.value)}</h3>:<h2 key={index}>{String(block.value)}</h2>;if(block.type==="list")return <ul key={index}>{(block.value as string[]).map((item,itemIndex)=><li key={`${item}-${itemIndex}`}>{item}</li>)}</ul>;return <p key={index}>{String(block.value)}</p>})}</>;
+  return <>{richTextBlocks(text,{documentTitle,inferNaturalStructure}).map((block,index)=>{if(block.type==="heading")return sectionHeadingLevel===3?<h3 key={index}>{String(block.value)}</h3>:<h2 key={index}>{String(block.value)}</h2>;if(block.type==="list")return <ul key={index}>{(block.value as string[]).map((item,itemIndex)=><li key={`${item}-${itemIndex}`}>{item}</li>)}</ul>;return <p key={index}>{String(block.value)}</p>})}</>;
 }
 
 export function Byline({author,publishedAt,updatedAt,readingTime}:{author?:Author|null;publishedAt?:string|null;updatedAt?:string|null;readingTime?:number|null}){
