@@ -1,4 +1,5 @@
 import Link from "next/link";
+import type {ReactNode} from "react";
 import {SafeImage} from "../components/SafeImage";
 import {formatDate} from "../lib/format";
 import {richTextBlocks} from "../lib/rich-text";
@@ -14,9 +15,24 @@ export function hasUnlistedParams(params:Record<string,string|string[]|undefined
 export function asFaqItems(value:unknown){if(!Array.isArray(value))return [];return value.filter((item):item is {question:string;answer:string}=>Boolean(item&&typeof item==="object"&&"question" in item&&"answer" in item&&typeof item.question==="string"&&typeof item.answer==="string"))}
 export function safeExternalUrls(value?:string[]){return (value||[]).filter(raw=>{try{return ["http:","https:"].includes(new URL(raw).protocol)}catch{return false}})}
 
+function safeContentHref(value:string){
+  const href=value.trim();if(href.startsWith("/")&&!href.startsWith("//")&&!href.includes("\\"))return href;
+  try{const url=new URL(href);return ["http:","https:"].includes(url.protocol)?href:null}catch{return null}
+}
+function InlineText({text}:{text:string}){
+  const pattern=/(\*\*[^*\n]+\*\*|\[[^\]\n]+\]\([^\s)]+\))/g;const nodes:ReactNode[]=[];let last=0;let match:RegExpExecArray|null;
+  while((match=pattern.exec(text))){if(match.index>last)nodes.push(text.slice(last,match.index));const token=match[0];if(token.startsWith("**"))nodes.push(<strong key={`${match.index}-strong`}>{token.slice(2,-2)}</strong>);else{const link=token.match(/^\[([^\]]+)\]\(([^)]+)\)$/);const href=link&&safeContentHref(link[2]);if(link&&href){const external=/^https?:\/\//i.test(href);nodes.push(<a key={`${match.index}-link`} href={href} target={external?"_blank":undefined} rel={external?"noopener noreferrer":undefined}><InlineText text={link[1]}/></a>)}else nodes.push(token)}last=match.index+token.length}
+  if(last<text.length)nodes.push(text.slice(last));return <>{nodes}</>;
+}
+
 export function RichText({text,sectionHeadingLevel=2,documentTitle,inferNaturalStructure=false}:{text?:string|null;sectionHeadingLevel?:2|3;documentTitle?:string;inferNaturalStructure?:boolean}){
   if(!text)return null;
-  return <>{richTextBlocks(text,{documentTitle,inferNaturalStructure}).map((block,index)=>{if(block.type==="heading")return sectionHeadingLevel===3?<h3 key={index}>{String(block.value)}</h3>:<h2 key={index}>{String(block.value)}</h2>;if(block.type==="list")return <ul key={index}>{(block.value as string[]).map((item,itemIndex)=><li key={`${item}-${itemIndex}`}>{item}</li>)}</ul>;return <p key={index}>{String(block.value)}</p>})}</>;
+  return <>{richTextBlocks(text,{documentTitle,inferNaturalStructure}).map((block,index)=>{
+    if(block.type==="heading")return sectionHeadingLevel===3?<h3 key={index}><InlineText text={block.value}/></h3>:<h2 key={index}><InlineText text={block.value}/></h2>;
+    if(block.type==="list"){const items=block.value.map((item,itemIndex)=><li key={`${item}-${itemIndex}`}><InlineText text={item}/></li>);return block.ordered?<ol key={index} type={block.lettered?"a":undefined}>{items}</ol>:<ul key={index}>{items}</ul>}
+    if(block.type==="table")return <div className={styles.richTableWrap} key={index}><table className={styles.richTable}><thead><tr>{block.headers.map((cell,cellIndex)=><th key={cellIndex}><InlineText text={cell}/></th>)}</tr></thead><tbody>{block.rows.map((row,rowIndex)=><tr key={rowIndex}>{block.headers.map((_,cellIndex)=><td key={cellIndex}><InlineText text={row[cellIndex]||""}/></td>)}</tr>)}</tbody></table></div>;
+    return <p key={index}><InlineText text={block.value}/></p>;
+  })}</>;
 }
 
 export function Byline({author,publishedAt,updatedAt,readingTime}:{author?:Author|null;publishedAt?:string|null;updatedAt?:string|null;readingTime?:number|null}){
