@@ -16,6 +16,7 @@ const display = Manrope({ variable: "--font-display", subsets: ["latin"], displa
 const colorPattern = /^#(?:[0-9a-f]{3}|[0-9a-f]{4}|[0-9a-f]{6}|[0-9a-f]{8})$/i;
 const safeColor = (value: string | undefined, fallback: string) => value && colorPattern.test(value) ? value : fallback;
 const pinterestDomainVerification = "a0ff8dd80a68642b401d4cad1be8ecb5";
+const foDomainVerification = "a358adb0-985c-47f5-915e-b8b9f28d843e";
 
 export async function generateMetadata(): Promise<Metadata> {
   const settings = await api.settings();
@@ -45,6 +46,7 @@ export async function generateMetadata(): Promise<Metadata> {
       google: settings.googleSiteVerification || undefined,
       other: {
         "p:domain_verify": pinterestDomainVerification,
+        "fo-verify": foDomainVerification,
         ...(settings.bingSiteVerification ? { "msvalidate.01": settings.bingSiteVerification } : {}),
       },
     },
