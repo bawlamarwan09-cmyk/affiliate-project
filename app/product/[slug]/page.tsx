@@ -11,7 +11,7 @@ import {PageEvent} from "../../components/PageEvent";
 import {ProductCard} from "../../components/ProductCard";
 import {SafeImage} from "../../components/SafeImage";
 import {PublicShell} from "../../components/PublicShell";
-import {formatDate,formatUSD} from "../../lib/format";
+import {formatUSD} from "../../lib/format";
 import {absoluteUrl,entityMetadata} from "../../lib/seo";
 import {publicApi} from "../../lib/public-api";
 import type {BuyingGuide,Product,SiteSettings} from "../../lib/types";
@@ -60,7 +60,6 @@ export default async function ProductPage({params}:Props){
   const breadcrumbs=[{name:"Home",url:"/"},...(product.category?.parent?[{name:product.category.parent.name,url:`/category/${product.category.parent.slug}`}]:[]),...(product.category?[{name:product.category.name,url:`/category/${product.category.slug}`}]:[]),{name:product.title,url:`/product/${product.slug}`}];
   const offer=current!=null&&product.affiliateUrl?{"@type":"Offer",url:product.affiliateUrl,priceCurrency:"USD",price:current,...(schemaAvailability(product.availability)?{availability:schemaAvailability(product.availability)}:{})}:undefined;
   const jsonLd={"@context":"https://schema.org","@type":"Product",name:product.title,url:absoluteUrl(product.canonicalUrl||`/product/${product.slug}`,settings),image:images.length?images.map(item=>absoluteUrl(item.url,settings)):undefined,description:product.editorialSummary||product.shortDescription||product.description||undefined,sku:product.sku||undefined,brand:product.brand?.name?{"@type":"Brand",name:product.brand.name}:undefined,offers:offer,...(rating!=null&&rating>0&&Number(product.reviewCount)>0?{aggregateRating:{"@type":"AggregateRating",ratingValue:rating,reviewCount:Number(product.reviewCount)}}:{})};
-  const verifiedIso=product.lastVerifiedAt?new Date(product.lastVerifiedAt).toISOString():null;const priceIso=product.priceUpdatedAt?new Date(product.priceUpdatedAt).toISOString():null;const contentIso=product.contentUpdatedAt?new Date(product.contentUpdatedAt).toISOString():null;const verifiedDate=verifiedIso?formatDate(verifiedIso):null;const priceDate=!verifiedDate&&priceIso?formatDate(priceIso):null;const contentDate=contentIso?formatDate(contentIso):null;
   const overview=product.editorialSummary||product.description;const additionalDescription=product.editorialSummary&&product.description&&product.editorialSummary.trim()!==product.description.trim()?product.description:null;
   return <PublicShell><div className="detail-page product-page">
     <PageEvent name="product_view" params={{product_id:product.id,product_name:product.title,store:store?.name}}/>
@@ -83,7 +82,6 @@ export default async function ProductPage({params}:Props){
         {store&&<aside className="store-card">{store.logo&&<Link href={`/store/${store.slug}`}><SafeImage src={store.logo} alt={`${store.name} logo`} width={140} height={56} sizes="105px"/></Link>}<div><small>Available at</small><strong><Link href={`/store/${store.slug}`}>{store.name}</Link></strong>{store.description&&<p>{store.description}</p>}</div></aside>}
         <AffiliateOutboundLink className="affiliate-cta" href={product.affiliateUrl} affiliateLinkId={product.affiliateLinkId} productId={product.id} productName={product.title} storeId={store?.id} storeName={store?.name} placement="product">{product.ctaLabel||(store?.name?`View at ${store.name}`:"View retailer")} <span>↗</span></AffiliateOutboundLink>
         {product.affiliateUrl&&<AffiliateDisclosure text={product.affiliateDisclosure||settings?.affiliateDisclosure||disclosureFallback}/>}
-        {(verifiedDate||priceDate||contentDate)&&<div className="freshness-note">{verifiedDate&&verifiedIso&&<p>Price and availability checked on <time dateTime={verifiedIso}>{verifiedDate}</time>.</p>}{priceDate&&priceIso&&<p>Price updated on <time dateTime={priceIso}>{priceDate}</time>.</p>}{contentDate&&contentIso&&<p>Editorial content updated on <time dateTime={contentIso}>{contentDate}</time>.</p>}</div>}
       </div>
     </section>
     <section className="product-information" aria-label="Product editorial guidance">
