@@ -1,5 +1,3 @@
-import Script from "next/script";
-
 const DEFAULT_GTM_ID = "GTM-PVNN5BFQ";
 const DEFAULT_GA4_ID = "G-3BPZSB39ME";
 
@@ -31,22 +29,13 @@ export function AnalyticsNoScript({ ids }: { ids?: Record<string, unknown> | nul
 
 export function Analytics({ ids }: { ids?: Record<string, unknown> | null }) {
   const { gtm, ga4 } = analyticsIds(ids);
-
-  return (
-    <>
-      {gtm && (
-        <Script id="gtm-loader" strategy="lazyOnload">
-          {`(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src='https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);})(window,document,'script','dataLayer','${gtm}');`}
-        </Script>
-      )}
-      {ga4 && !gtm && (
-        <>
-          <Script src={`https://www.googletagmanager.com/gtag/js?id=${encodeURIComponent(ga4)}`} strategy="lazyOnload" />
-          <Script id="ga4-config" strategy="lazyOnload">
-            {`window.__bargainMomDirectGa=true;window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}gtag('js',new Date());gtag('config','${ga4}',{anonymize_ip:true});`}
-          </Script>
-        </>
-      )}
-    </>
-  );
+  if (!gtm && !ga4) return null;
+  const source = gtm
+    ? `https://www.googletagmanager.com/gtm.js?id=${gtm}`
+    : `https://www.googletagmanager.com/gtag/js?id=${ga4}`;
+  const setup = gtm
+    ? `w.dataLayer.push({'gtm.start':new Date().getTime(),event:'gtm.js'});`
+    : `w.__bargainMomDirectGa=true;w.dataLayer.push(['js',new Date()]);w.dataLayer.push(['config','${ga4}',{anonymize_ip:true}]);`;
+  const code = `(function(w,d){var loaded=false;w.dataLayer=w.dataLayer||[];function load(){if(loaded)return;loaded=true;${setup}var s=d.createElement('script');s.async=true;s.src='${source}';d.head.appendChild(s)}['pointerdown','keydown','scroll'].forEach(function(e){w.addEventListener(e,load,{once:true,passive:true})});w.setTimeout(load,8000)})(window,document);`;
+  return <script id="deferred-analytics" dangerouslySetInnerHTML={{ __html: code }} />;
 }

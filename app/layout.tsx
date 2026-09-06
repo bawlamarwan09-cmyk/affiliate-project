@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
 import type { CSSProperties } from "react";
 import { Geist, Manrope } from "next/font/google";
+import { AffiliateClickTracker } from "./components/AffiliateClickTracker";
 import { Analytics, AnalyticsNoScript } from "./components/Analytics";
-import { DealsEmailPopup } from "./components/DealsEmailPopup";
+import { DealsEmailPopupLoader } from "./components/DealsEmailPopupLoader";
 import { JsonLd } from "./components/JsonLd";
 import { api } from "./lib/api";
 import { absoluteUrl, siteUrl } from "./lib/seo";
@@ -98,7 +99,8 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <AnalyticsNoScript ids={settings.analyticsIds} />
         <JsonLd id="site-jsonld" data={schema} />
         {children}
-        <DealsEmailPopup label={settings.newsletterTitle} description={settings.newsletterText} />
+        <AffiliateClickTracker />
+        <DealsEmailPopupLoader label={settings.newsletterTitle} description={settings.newsletterText} />
         <Analytics ids={settings.analyticsIds} />
       </body>
     </html>

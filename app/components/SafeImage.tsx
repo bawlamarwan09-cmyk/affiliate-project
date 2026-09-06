@@ -11,13 +11,14 @@ function uploadUrl(src: string, width: number) {
 }
 
 export function SafeImage({ src, alt, width, height, sizes, priority = false, className }: Props) {
-  let optimized = src.startsWith("/");
-  try { optimized = optimized || optimizedHosts.has(new URL(src).hostname); } catch {}
   const runtimeUpload = src.startsWith("/uploads/") && !src.toLowerCase().endsWith(".gif");
   if (runtimeUpload) {
     const candidates = responsiveWidths.filter(candidate => candidate < width);
     if (!candidates.includes(width)) candidates.push(width);
     return <img src={uploadUrl(src, width)} srcSet={candidates.map(candidate => `${uploadUrl(src, candidate)} ${candidate}w`).join(", ")} alt={alt} width={width} height={height} sizes={sizes} loading={priority ? "eager" : "lazy"} fetchPriority={priority ? "high" : undefined} decoding="async" className={className} />;
   }
-  return <Image src={src} alt={alt} width={width} height={height} sizes={sizes} priority={priority} className={className} quality={72} unoptimized={src.startsWith("/brand/") || !optimized} />;
+  if (src.startsWith("/")) return <img src={src} alt={alt} width={width} height={height} sizes={sizes} loading={priority ? "eager" : "lazy"} fetchPriority={priority ? "high" : undefined} decoding="async" className={className} />;
+  let optimized = false;
+  try { optimized = optimizedHosts.has(new URL(src).hostname); } catch {}
+  return <Image src={src} alt={alt} width={width} height={height} sizes={sizes} priority={priority} className={className} quality={72} unoptimized={!optimized} />;
 }

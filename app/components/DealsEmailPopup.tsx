@@ -41,9 +41,11 @@ function shouldSuppressPopup() {
 export function DealsEmailPopup({
   label,
   description,
+  delayMs = POPUP_DELAY_MS,
 }: {
   label?: string | null;
   description?: string | null;
+  delayMs?: number;
 }) {
   const pathname = usePathname();
   const isAdmin = pathname.startsWith("/admin");
@@ -62,9 +64,9 @@ export function DealsEmailPopup({
 
   useEffect(() => {
     if (isAdmin || shouldSuppressPopup()) return;
-    const timer = window.setTimeout(() => setOpen(true), POPUP_DELAY_MS);
+    const timer = window.setTimeout(() => setOpen(true), delayMs);
     return () => window.clearTimeout(timer);
-  }, [isAdmin]);
+  }, [delayMs, isAdmin]);
 
   useEffect(() => {
     if (!open) return;
