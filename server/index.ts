@@ -4,6 +4,9 @@ import cors from "cors";
 import helmet from "helmet";
 import rateLimit from "express-rate-limit";
 import cookieParser from "cookie-parser";
+import { readFile } from "node:fs/promises";
+import path from "node:path";
+import sharp from "sharp";
 import { PrismaClient, type Prisma } from "@prisma/client";
 import { z } from "zod";
 import { authRouter } from "./auth.js";
@@ -16,6 +19,27 @@ const app=express();
 // headers only when the direct proxy connection comes from a local/private net.
 app.set("trust proxy","loopback, linklocal, uniquelocal");
 app.use(helmet());
+app.get(["/uploads/:filename","/api/image/:filename"],async(req,res,next)=>{
+  const rawFilename=req.params.filename;
+  const filename=Array.isArray(rawFilename)?rawFilename[0]:rawFilename;
+  if(!uploadFilenamePattern.test(filename))return res.status(404).end();
+  if(req.query.w===undefined)return next();
+  const width=Math.max(48,Math.min(1600,Number.parseInt(String(req.query.w),10)||0));
+  const quality=Math.max(45,Math.min(85,Number.parseInt(String(req.query.q||"72"),10)||72));
+  if(!width)return res.status(400).end();
+  try{
+    const source=await readFile(path.join(uploadDirectory,filename));
+    const image=await sharp(source,{animated:true}).rotate().resize({width,withoutEnlargement:true,fit:"inside"}).webp({quality,effort:4}).toBuffer();
+    res.setHeader("Cache-Control","public, max-age=31536000, immutable");
+    res.setHeader("Content-Type","image/webp");
+    res.setHeader("Content-Length",String(image.length));
+    res.setHeader("X-Content-Type-Options","nosniff");
+    return res.send(image);
+  }catch(error){
+    if((error as NodeJS.ErrnoException).code==="ENOENT")return res.status(404).end();
+    return next(error);
+  }
+});
 app.use("/uploads",(req,res,next)=>{
   const filename=req.path.startsWith("/")?req.path.slice(1):req.path;
   if(!uploadFilenamePattern.test(filename))return res.status(404).end();
@@ -41,7 +65,7 @@ type HomepageProductPlacement={product:HomepageCardProduct};
 type HomepageResponseSection={id:string;type:string;sortOrder:number;title?:string|null;subtitle?:string|null;background?:string|null;ctaText?:string|null;ctaUrl?:string|null;config?:unknown;products?:ReturnType<typeof card>[];categories?:unknown[];stores?:unknown[];posts?:unknown[];[key:string]:unknown};
 type AffiliateDestinationSource={affiliateLinks?:{id:string;label:string;url:string}[];affiliateUrl?:string|null;ctaLabel?:string|null};
 function affiliateDestination(product:AffiliateDestinationSource){const link=product.affiliateLinks?.[0];return {affiliateUrl:link?.url||product.affiliateUrl||null,ctaLabel:link?.label||product.ctaLabel||"View retailer",affiliateLinkId:link?.id||null}}
-function card(product:CardProduct&{_count?:{deals:number}}){const record={...product};delete record._count;delete record.affiliateLinks;const deal=product.deals?.[0];const demo=Array.isArray(product.tags)&&product.tags.includes("demo-seed");return {...record,...affiliateDestination(product),image:product.images?.[0]?.url,activeDeal:deal||null,discountPercent:deal?.discountPercent??null,badge:deal?.badge??(demo?"Demo data":null),oldPrice:deal?product.oldPrice:null}}
+function card(product:CardProduct&{_count?:{deals:number}}){const deal=product.deals?.[0];const demo=Array.isArray(product.tags)&&product.tags.includes("demo-seed");return {id:product.id,slug:product.slug,title:product.title,currentPrice:product.currentPrice,oldPrice:deal?product.oldPrice:null,rating:product.rating,reviewCount:product.reviewCount,...affiliateDestination(product),image:product.images?.[0]?.url||null,discountPercent:deal?.discountPercent??null,badge:deal?.badge??(demo?"Demo data":null),brand:product.brand?{id:product.brand.id,name:product.brand.name,slug:product.brand.slug,logo:product.brand.logo}:null,category:product.category?{id:product.category.id,name:product.category.name,slug:product.category.slug}:null,store:product.store?{id:product.store.id,name:product.store.name,slug:product.store.slug,logo:product.store.logo}:null}}
 function homepageProducts(sectionType:string,placements:HomepageProductPlacement[],activeProducts:HomepageCardProduct[]=[],maxItems?:number|null){
   const selected=placements.map(({product})=>product);
   if(sectionType==="FEATURED_PRODUCTS"){
