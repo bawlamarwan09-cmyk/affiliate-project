@@ -12,8 +12,8 @@ import "./public-pages.css";
 import "./product-detail.css";
 import "./seo-pages.css";
 
-const sans = Geist({ variable: "--font-sans", subsets: ["latin"], display: "swap" });
-const display = Manrope({ variable: "--font-display", subsets: ["latin"], display: "swap" });
+const sans = Geist({ variable: "--font-sans", subsets: ["latin"], display: "swap", preload: false });
+const display = Manrope({ variable: "--font-display", subsets: ["latin"], display: "swap", preload: false });
 const colorPattern = /^#(?:[0-9a-f]{3}|[0-9a-f]{4}|[0-9a-f]{6}|[0-9a-f]{8})$/i;
 const safeColor = (value: string | undefined, fallback: string) => value && colorPattern.test(value) ? value : fallback;
 const pinterestDomainVerification = "a0ff8dd80a68642b401d4cad1be8ecb5";
