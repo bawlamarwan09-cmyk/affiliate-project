@@ -133,6 +133,12 @@
 
 /* Skip layout and paint work for homepage sections until they approach the viewport. */
 .dynamic-home>.content-section,.dynamic-home>.promo,.dynamic-home>.trust-strip{content-visibility:auto;contain-intrinsic-size:auto 520px}
+@media(max-width:700px){
+  .dynamic-home .product-card{content-visibility:auto;contain-intrinsic-size:auto 510px}
+  .dynamic-home .category-grid>a{content-visibility:auto;contain-intrinsic-size:auto 82px}
+  .dynamic-home .blog-grid>a{content-visibility:auto;contain-intrinsic-size:auto 390px}
+  .site-shell>footer{content-visibility:auto;contain-intrinsic-size:auto 640px}
+}
 @media(max-width:360px){
   .reference-hero{padding-inline:14px}
   .hero-copy h1,.cms-hero h1{font-size:36px}
