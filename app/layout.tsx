@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import type { CSSProperties } from "react";
-import { Geist, Manrope } from "next/font/google";
 import { AffiliateClickTracker } from "./components/AffiliateClickTracker";
 import { Analytics, AnalyticsNoScript } from "./components/Analytics";
 import { DealsEmailPopupLoader } from "./components/DealsEmailPopupLoader";
@@ -12,8 +11,6 @@ import "./public-pages.css";
 import "./product-detail.css";
 import "./seo-pages.css";
 
-const sans = Geist({ variable: "--font-sans", subsets: ["latin"], display: "swap", preload: false });
-const display = Manrope({ variable: "--font-display", subsets: ["latin"], display: "swap", preload: false });
 const colorPattern = /^#(?:[0-9a-f]{3}|[0-9a-f]{4}|[0-9a-f]{6}|[0-9a-f]{8})$/i;
 const safeColor = (value: string | undefined, fallback: string) => value && colorPattern.test(value) ? value : fallback;
 const pinterestDomainVerification = "a0ff8dd80a68642b401d4cad1be8ecb5";
@@ -96,7 +93,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
 
   return (
     <html lang="en-US">
-      <body className={`${sans.variable} ${display.variable}`} style={theme}>
+      <body style={theme}>
         <AnalyticsNoScript ids={settings.analyticsIds} />
         <JsonLd id="site-jsonld" data={schema} />
         {children}
