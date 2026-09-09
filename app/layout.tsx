@@ -18,6 +18,7 @@ const colorPattern = /^#(?:[0-9a-f]{3}|[0-9a-f]{4}|[0-9a-f]{6}|[0-9a-f]{8})$/i;
 const safeColor = (value: string | undefined, fallback: string) => value && colorPattern.test(value) ? value : fallback;
 const pinterestDomainVerification = "a0ff8dd80a68642b401d4cad1be8ecb5";
 const foDomainVerification = "a358adb0-985c-47f5-915e-b8b9f28d843e";
+const bingSiteVerification = "7744A274046029CF407A2A107361B85B";
 
 export async function generateMetadata(): Promise<Metadata> {
   const settings = await api.settings();
@@ -48,7 +49,7 @@ export async function generateMetadata(): Promise<Metadata> {
       other: {
         "p:domain_verify": pinterestDomainVerification,
         "fo-verify": foDomainVerification,
-        ...(settings.bingSiteVerification ? { "msvalidate.01": settings.bingSiteVerification } : {}),
+        "msvalidate.01": settings.bingSiteVerification || bingSiteVerification,
       },
     },
     formatDetection: { address: false, email: false, telephone: false },
