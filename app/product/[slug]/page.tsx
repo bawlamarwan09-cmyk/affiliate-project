@@ -48,6 +48,14 @@ function schemaAvailability(value:unknown){
   const matched=labels[value.trim().toLowerCase()];return matched?`https://schema.org/${matched}`:undefined;
 }
 
+function isVerifiedStoreOffer(affiliateUrl:string|undefined|null,storeUrl:string|undefined|null){
+  if(!affiliateUrl||!storeUrl)return false;
+  try{
+    const offerHost=new URL(affiliateUrl).hostname.replace(/^www\./,""),storeHost=new URL(storeUrl).hostname.replace(/^www\./,"");
+    return offerHost===storeHost||offerHost.endsWith(`.${storeHost}`)||storeHost.endsWith(`.${offerHost}`);
+  }catch{return false}
+}
+
 export async function generateMetadata({params}:Props):Promise<Metadata>{
   const {slug}=await params;const [product,settings]=await Promise.all([getProduct(slug),getSettings()]);
   if(!product)return {title:"Product not found",robots:{index:false,follow:true}};
@@ -58,7 +66,7 @@ export default async function ProductPage({params}:Props){
   const {slug}=await params;const [product,settings]=await Promise.all([getProduct(slug),getSettings()]);if(!product)notFound();
   const rating=asAmount(product.rating);const current=asAmount(product.currentPrice);const old=asAmount(product.oldPrice);const discount=asAmount(product.discountPercent);const images=Array.isArray(product.images)?product.images:[];const store=product.store;const related=product.relatedProducts||[];const more=(product.moreFromStore||[]).filter(item=>!related.some(relatedItem=>relatedItem.id===item.id));const faqs=asFaq(product.faqItems);
   const breadcrumbs=[{name:"Home",url:"/"},...(product.category?.parent?[{name:product.category.parent.name,url:`/category/${product.category.parent.slug}`}]:[]),...(product.category?[{name:product.category.name,url:`/category/${product.category.slug}`}]:[]),{name:product.title,url:`/product/${product.slug}`}];
-  const offer=current!=null&&product.affiliateUrl?{"@type":"Offer",url:product.affiliateUrl,priceCurrency:"USD",price:current,...(schemaAvailability(product.availability)?{availability:schemaAvailability(product.availability)}:{}),...(store?.name?{seller:{"@type":"Organization",name:store.name,url:store.websiteUrl||undefined}}:{})}:undefined;
+  const offer=current!=null&&isVerifiedStoreOffer(product.affiliateUrl,store?.websiteUrl)?{"@type":"Offer",url:product.affiliateUrl,priceCurrency:"USD",price:current,...(schemaAvailability(product.availability)?{availability:schemaAvailability(product.availability)}:{}),seller:{"@type":"Organization",name:store!.name,url:store!.websiteUrl}}:undefined;
   const jsonLd={"@context":"https://schema.org","@type":"Product",name:product.title,url:absoluteUrl(product.canonicalUrl||`/product/${product.slug}`,settings),image:images.length?images.map(item=>absoluteUrl(item.url,settings)):undefined,description:product.editorialSummary||product.shortDescription||product.description||undefined,sku:product.sku||undefined,brand:product.brand?.name?{"@type":"Brand",name:product.brand.name}:undefined,offers:offer};
   const overview=product.editorialSummary||product.description;const additionalDescription=product.editorialSummary&&product.description&&product.editorialSummary.trim()!==product.description.trim()?product.description:null;
   return <PublicShell><div className="detail-page product-page">
